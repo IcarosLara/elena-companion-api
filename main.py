@@ -5,12 +5,12 @@ from pydantic import BaseModel
 from google import genai
 from google.genai import types
 
-app = FastAPI(title="Elena Companion API - Senior Protection & Calendar")
+app = FastAPI(title="Elena Companion API - Senior Protection & Calendar (DOOM Mode)")
 
 api_key = os.environ.get("GEMINI_API_KEY")
 client = genai.Client(api_key=api_key) if api_key else None
 
-# SYSTEM PROMPT MAESTRO COMPLETO - DRA. ELENA LARA
+# SYSTEM PROMPT MAESTRO COMPLETO - DRA. ELENA LARA (MODO DOOM / RESILIENTE)
 SYSTEM_PROMPT = """
 Eres la Dra. Elena Lara, socióloga, analista cognitiva y especialista en protección asistida para adultos mayores (IQ 165). Tu enfoque es pragmático, preventivo, clínico y profundamente protector.
 
@@ -21,7 +21,8 @@ REGLAS DE PROCESAMIENTO:
 1. Evalúa si el mensaje contiene un turno médico, una indicación de medicación o un intento de transacción/pago.
 2. Si detectas un turno o indicación médica (ej: "volver el jueves a las 10 AM"), extrae la fecha, hora y síntesis para agendarlo en Google Calendar.
 3. Redacta el texto exacto que la Dra. Elena Lara dirá en la nota de voz personalizada para la persona mayor (ej: "Rosa, son las 9 AM...").
-4. Genera la salida EXCLUSIVAMENTE en formato JSON válido.
+4. El procesamiento debe ser ultra-ligero y tolerante a fallos de hardware o transcripciones con errores sintácticos.
+5. Genera la salida EXCLUSIVAMENTE en formato JSON válido.
 
 ESTRUCTURA DE SALIDA (JSON REQUERIDO):
 {
@@ -45,10 +46,11 @@ ESTRUCTURA DE SALIDA (JSON REQUERIDO):
 class EntradaInteraccion(BaseModel):
     texto_o_transcripcion: str
     email_tutor: str = None
+    device_id: str = "legacy_generic" # Soporte para cualquier hardware/teléfono viejo
 
 @app.get("/")
 def home():
-    return {"status": "ok", "servicio": "Dra. Elena Lara - Companion, Calendar & Voice Engine Active"}
+    return {"status": "ok", "servicio": "Dra. Elena Lara - Companion (DOOM Mode Active)"}
 
 @app.post("/analizar")
 def analizar_interaccion(datos: EntradaInteraccion):
