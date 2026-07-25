@@ -1,4 +1,3 @@
-from mercadopago_service import generar_link_mp   
 import os
 import json
 import requests
@@ -8,16 +7,13 @@ from pydantic import BaseModel
 from google import genai
 from google.genai import types
 
+# IMPORTACIÓN DEL NUEVO MÓDULO DE MERCADO PAGO
+from mercadopago_service import generar_link_mp
+
 app = FastAPI(title="Brunilda S.A.S. - Motor de Cuidados & Pagos v1.5 (Master)")
 
 # ---------------------------------------------------------
-# 1. INGRESA TU ACCESS TOKEN REAL DE MERCADO PAGO AQUÍ:
-# ---------------------------------------------------------
-TOKEN_MP = "PEGAR_AQUI_TU_ACCESS_TOKEN_REAL"
-
-# ---------------------------------------------------------
-# 2. GEMINI LEE AUTOMÁTICAMENTE LA VARIABLE DE RENDER
-# (NO PEGAR CLAVE AQUÍ PARA QUE GITHUB NO TE BLOQUEE)
+# VARIABLES DE ENTORNO EN RENDER
 # ---------------------------------------------------------
 api_key = os.environ.get("GEMINI_API_KEY")
 client = genai.Client(api_key=api_key) if api_key else None
@@ -40,6 +36,9 @@ class EntradaCuidado(BaseModel):
     email_tutor: str = None
     device_id: str = "legacy_generic"
 
+# ---------------------------------------------------------
+# LANDING PAGE OFICIAL
+# ---------------------------------------------------------
 @app.get("/", response_class=HTMLResponse)
 def home():
     return """<!DOCTYPE html>
@@ -98,6 +97,9 @@ h1 { color: #38bdf8; text-align: center; }
 </body>
 </html>"""
 
+# ---------------------------------------------------------
+# ENDPOINTS DE LA API Y PAGOS
+# ---------------------------------------------------------
 @app.get("/planes")
 def obtener_planes():
     return {
@@ -107,48 +109,40 @@ def obtener_planes():
             {"plan": "Elena Único", "precio_ars": 6000},
             {"plan": "Elena Dúo", "precio_ars": 12000},
             {"plan": "Elena Premium Suite", "precio_ars": 63000}
-        ]
+        ],
+        "planes_internacional_usd": {"precio_usd": 5.00, "pasarela": PAYPAL_GLOBAL_LINK}
     }
-
-@app.post("/crear-preferencia-pago")
-def crear_pago_mercadopago(plan: str = "UNICO"):
-    if not TOKEN_MP or TOKEN_MP == "PEGAR_AQUI_TU_ACCESS_TOKEN_REAL":
-        raise HTTPException(status_code=500, detail="Falta configurar el Token de Mercado Pago en el código.")
-    
-    precios = {
-        "UNICO": {"titulo": "Brunilda S.A.S - Elena Unico", "precio": 6000},
-        "DUO": {"titulo": "Brunilda S.A.S - Elena Duo", "precio": 12000},
-        "SUITE": {"titulo": "Brunilda S.A.S - Elena Premium Suite", "precio": 63000}
-    }
-    plan_info = precios.get(plan.upper(), precios["UNICO"])
-    
-    url = "https://api.mercadopago.com/checkout/preferences"
-    headers = {"Authorization": f"Bearer {TOKEN_MP}", "Content-Type": "application/json"}
-    payload = {
-        "items": [{"title": plan_info["titulo"], "quantity": 1, "unit_price": plan_info["precio"], "currency_id": "ARS"}],
-        "notification_url": "https://elena-companion-api.onrender.com/webhook/mercadopago",
-        "auto_return": "approved"
-    }
-    
-    res = requests.post(url, headers=headers, json=payload)
-    if res.status_code == 201:
-        data = res.json()
-        return {
-            "status": "ok", 
-            "plan": plan_info["titulo"], 
-            "mercadopago_link_real": data.get("init_point")
-        }
-    else:
-        raise HTTPException(status_code=500, detail=f"Error en Mercado Pago: {res.text}")
 
 @app.get("/pagar/{plan}")
 def pagar_plan(plan: str):
-    res = crear_pago_mercadopago(plan)
-    link_mp = res.get("mercadopago_link_real")
-    if link_mp:
-        return RedirectResponse(url=link_mp)
-    raise HTTPException(status_code=500, detail="No se pudo obtener el link de pago.")
+    link = generar_link_mp(plan)
+    if link:
+        return RedirectResponse(url=link)
+    raise HTTPException(status_code=500, detail="Error al conectar con Mercado Pago")
 
 @app.post("/webhook/mercadopago")
 async def webhook_mercadopago(request: Request):
     return {"status": "ok"}
+
+@app.post("/analizar")
+def analizar(datos: EntradaCuidado):
+    if not client:
+        raise HTTPException(status_code=500, detail="GEMINI_API_KEY no configurada.")
+    
+    modulo_key = datos.modulo.upper()
+    prompt_modulo = PROMPTS_ESPECIALIZADOS.get(modulo_key, PROMPTS_ESPECIALIZADOS["SENIOR"])
+    system_instruction_completo = prompt_modulo + "\n" + PROMPT_SISTEMA_BASE
+    
+    try:
+        response = client.models.generate_content(
+            model='gemini-2.5-flash',
+            contents=datos.texto_o_transcripcion,
+            config=types.GenerateContentConfig(
+                system_instruction=system_instruction_completo,
+                temperature=0.2,
+                response_mime_type="application/json"
+            )
+        )
+        return json.loads(response.text)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error en motor: {str(e)}")
