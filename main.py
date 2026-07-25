@@ -1,3 +1,4 @@
+from mercadopago_service import generar_link_mp   
 import os
 import json
 import requests
@@ -12,7 +13,7 @@ app = FastAPI(title="Brunilda S.A.S. - Motor de Cuidados & Pagos v1.5 (Master)")
 # ---------------------------------------------------------
 # 1. INGRESA TU ACCESS TOKEN REAL DE MERCADO PAGO AQUÍ:
 # ---------------------------------------------------------
-TOKEN_MP = "APP_USR-738297045866874-070402-5f178e96384dfbf05d797c448c7e97c6-3518229186"
+TOKEN_MP = "PEGAR_AQUI_TU_ACCESS_TOKEN_REAL"
 
 # ---------------------------------------------------------
 # 2. GEMINI LEE AUTOMÁTICAMENTE LA VARIABLE DE RENDER
