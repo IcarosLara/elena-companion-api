@@ -78,7 +78,7 @@ class EntradaCuidado(BaseModel):
 
 
 # ---------------------------------------------------------
-# LANDING PAGE OFICIAL SEGURA Y PROTEGIDA (RUTA /)
+# LANDING PAGE OFICIAL (RUTA /)
 # ---------------------------------------------------------
 @app.get("/", response_class=HTMLResponse)
 def home():
@@ -173,12 +173,6 @@ def home():
 # ---------------------------------------------------------
 @app.get("/planes", summary="Obtener Planes y Módulos de la Dra. Elena Lara")
 def obtener_planes():
-    """
-    Retorna el catálogo completo de suscripciones de Brunilda S.A.S.:
-    - **Condiciones Freemium:** 24 horas de prueba pasiva con pantalla bloqueada.
-    - **Planes Nacionales (ARS):** Mercado Pago (Elena Único, Dúo, Premium Suite).
-    - **Planes Internacionales (USD):** PayPal Factura Oficial ($5.00 USD/mes).
-    """
     return {
         "empresa": "Brunilda S.A.S.",
         "directora_servicio": "Dra. Elena Lara",
@@ -237,9 +231,6 @@ def crear_pago_mercadopago(plan: str = "UNICO"):
 
 @app.get("/pagar/{plan}")
 def pagar_plan(plan: str):
-    """
-    Redirige directamente al checkout de Mercado Pago para el plan especificado.
-    """
     res = crear_pago_mercadopago(plan)
     link_mp = res.get("mercadopago_link_real")
     if link_mp:
