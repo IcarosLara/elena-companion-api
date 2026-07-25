@@ -269,3 +269,10 @@ def analizar(datos: EntradaCuidado):
         return json.loads(response.text)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error en motor: {str(e)}")
+        @app.get("/test-env")
+def test_env():
+    token = os.environ.get("MP_ACCESS_TOKEN")
+    if token:
+        # Muestra solo los primeros 10 caracteres por seguridad
+        return {"status": "OK", "token_inicio": token[:10] + "..."}
+    return {"status": "ERROR", "mensaje": "Render sigue sin ver la variable MP_ACCESS_TOKEN"}
