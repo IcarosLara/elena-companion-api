@@ -169,6 +169,17 @@ def home():
 
 
 # ---------------------------------------------------------
+# ENDPOINTS DE PRUEBA Y DIAGNÓSTICO
+# ---------------------------------------------------------
+@app.get("/test-env")
+def test_env():
+    token = os.environ.get("MP_ACCESS_TOKEN")
+    if token:
+        return {"status": "OK", "token_inicio": token[:10] + "..."}
+    return {"status": "ERROR", "mensaje": "Render sigue sin ver la variable MP_ACCESS_TOKEN"}
+
+
+# ---------------------------------------------------------
 # ENDPOINTS DE LA API & CATALOGO DOCUMENTADO
 # ---------------------------------------------------------
 @app.get("/planes", summary="Obtener Planes y Módulos de la Dra. Elena Lara")
@@ -181,98 +192,4 @@ def obtener_planes():
             "Elena Senior (Adultos mayores, finanzas, medicación)",
             "Elena Baby (Primera infancia, vacunas, sueño)",
             "Elena Care (Discapacidad y movilidad reducida)",
-            "Elena Recovery (Rehabilitación y fármacos crónicos)",
-            "Elena Memory (Refuerzo cognitivo y memoria temprana)"
-        ],
-        "planes_argentina_ars": [
-            {"plan": "Elena Único", "precio_ars": 6000, "cobertura": "1 Módulo a elección"},
-            {"plan": "Elena Dúo", "precio_ars": 12000, "cobertura": "2 Módulos a elección"},
-            {"plan": "Elena Premium Suite", "precio_ars": 63000, "cobertura": "Acceso total a las 5 Elenas"}
-        ],
-        "planes_internacional_usd": {
-            "precio_usd": 5.00,
-            "frecuencia": "mensual",
-            "pasarela": PAYPAL_GLOBAL_LINK
-        }
-    }
-
-@app.post("/crear-preferencia-pago")
-def crear_pago_mercadopago(plan: str = "UNICO"):
-    if not MP_ACCESS_TOKEN:
-        raise HTTPException(status_code=500, detail="MP_ACCESS_TOKEN no configurado en Render.")
-    
-    precios = {
-        "UNICO": {"titulo": "Brunilda S.A.S - Elena Unico (1 Modulo)", "precio": 6000},
-        "DUO": {"titulo": "Brunilda S.A.S - Elena Duo (2 Modulos)", "precio": 12000},
-        "SUITE": {"titulo": "Brunilda S.A.S - Elena Premium Suite (5 Modulos)", "precio": 63000}
-    }
-    plan_info = precios.get(plan.upper(), precios["UNICO"])
-    
-    url = "https://api.mercadopago.com/checkout/preferences"
-    headers = {"Authorization": f"Bearer {MP_ACCESS_TOKEN}", "Content-Type": "application/json"}
-    payload = {
-        "items": [{"title": plan_info["titulo"], "quantity": 1, "unit_price": plan_info["precio"], "currency_id": "ARS"}],
-        "notification_url": "https://elena-companion-api.onrender.com/webhook/mercadopago",
-        "auto_return": "approved"
-    }
-    
-    res = requests.post(url, headers=headers, json=payload)
-    if res.status_code == 201:
-        data = res.json()
-        return {
-            "status": "ok", 
-            "plan": plan_info["titulo"], 
-            "mercadopago_link_real": data.get("init_point"), 
-            "mercadopago_link_prueba": data.get("sandbox_init_point"),
-            "paypal_link_internacional": PAYPAL_GLOBAL_LINK
-        }
-    else:
-        raise HTTPException(status_code=500, detail=f"Error en Mercado Pago: {res.text}")
-
-@app.get("/pagar/{plan}")
-def pagar_plan(plan: str):
-    res = crear_pago_mercadopago(plan)
-    link_mp = res.get("mercadopago_link_real")
-    if link_mp:
-        return RedirectResponse(url=link_mp)
-    else:
-        raise HTTPException(status_code=500, detail="No se pudo obtener el link de Mercado Pago")
-
-@app.post("/webhook/mercadopago")
-async def webhook_mercadopago(request: Request):
-    try:
-        datos = await request.json()
-        print("Evento Mercado Pago recibido:", datos)
-        return {"status": "ok"}
-    except Exception as e:
-        return {"status": "ok", "error": str(e)}
-
-@app.post("/analizar")
-def analizar(datos: EntradaCuidado):
-    if not client:
-        raise HTTPException(status_code=500, detail="GEMINI_API_KEY no configurada.")
-    
-    modulo_key = datos.modulo.upper()
-    prompt_modulo = PROMPTS_ESPECIALIZADOS.get(modulo_key, PROMPTS_ESPECIALIZADOS["SENIOR"])
-    system_instruction_completo = prompt_modulo + "\n" + PROMPT_SISTEMA_BASE
-    
-    try:
-        response = client.models.generate_content(
-            model='gemini-2.5-flash',
-            contents=datos.texto_o_transcripcion,
-            config=types.GenerateContentConfig(
-                system_instruction=system_instruction_completo,
-                temperature=0.2,
-                response_mime_type="application/json"
-            )
-        )
-        return json.loads(response.text)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error en motor: {str(e)}")
-        @app.get("/test-env")
-def test_env():
-    token = os.environ.get("MP_ACCESS_TOKEN")
-    if token:
-        # Muestra solo los primeros 10 caracteres por seguridad
-        return {"status": "OK", "token_inicio": token[:10] + "..."}
-    return {"status": "ERROR", "mensaje": "Render sigue sin ver la variable MP_ACCESS_TOKEN"}
+            "Elena
