@@ -2,14 +2,16 @@ import os
 import json
 import requests
 from fastapi import FastAPI, HTTPException, Request
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, RedirectResponse
 from pydantic import BaseModel
 from google import genai
 from google.genai import types
 
 app = FastAPI(title="Brunilda S.A.S. - Motor de Cuidados & Pagos v1.5 (Master)")
 
+# ---------------------------------------------------------
 # VARIABLES DE ENTORNO EN RENDER
+# ---------------------------------------------------------
 api_key = os.environ.get("GEMINI_API_KEY")
 client = genai.Client(api_key=api_key) if api_key else None
 MP_ACCESS_TOKEN = os.environ.get("MP_ACCESS_TOKEN")
@@ -17,7 +19,9 @@ MP_ACCESS_TOKEN = os.environ.get("MP_ACCESS_TOKEN")
 # LINK OFICIAL DE PAYPAL DE BRUNILDA S.A.S.
 PAYPAL_GLOBAL_LINK = "https://www.paypal.com/invoice/p/#LGFK9KP2H6A55PQH"
 
-# PROMPTS ESPECIALIZADOS DE LOS EMPLEADOS DE BRUNILDA S.A.S.
+# ---------------------------------------------------------
+# PROMPTS ESPECIALIZADOS Y SISTEMA BASE
+# ---------------------------------------------------------
 PROMPTS_ESPECIALIZADOS = {
     "SENIOR": "Rol: Empleado asignado a 'Elena Senior'. Directora: Dra. Elena Lara. Objetivo: Proteger autonomía, medicación, salud y finanzas del adulto mayor. Detectar pagos duplicados, desorientación y coacción.",
     "BABY": "Rol: Empleado asignado a 'Elena Baby'. Directora: Dra. Elena Lara. Objetivo: Asistir a madres/padres primerizos. DESCARTAR charlas triviales. Registrar exclusivamente tomas de leche, pañales, sueño, vacunas, controles pediátricos y baño/uñas.",
@@ -124,7 +128,7 @@ def home():
                     <li>Elegí 1 de los 5 módulos de la Dra. Elena Lara.</li>
                 </ul>
                 <div class="plan-price">$6.000 ARS</div>
-                <a href="https://elena-companion-api.onrender.com/crear-preferencia-pago?plan=UNICO" target="_blank" class="pay-btn">Suscribirme</a>
+                <a href="/pagar/UNICO" class="pay-btn">Suscribirme</a>
             </div>
             <div class="plan-card">
                 <h3>Elena Dúo</h3>
@@ -133,7 +137,7 @@ def home():
                     <li>Combiná 2 módulos (ej: Senior + Baby).</li>
                 </ul>
                 <div class="plan-price">$12.000 ARS</div>
-                <a href="https://elena-companion-api.onrender.com/crear-preferencia-pago?plan=DUO" target="_blank" class="pay-btn">Suscribirme</a>
+                <a href="/pagar/DUO" class="pay-btn">Suscribirme</a>
             </div>
             <div class="plan-card" style="border-color: #f59e0b;">
                 <h3>Elena Premium Suite</h3>
@@ -146,7 +150,7 @@ def home():
                     <li>🧠 <strong>Elena Memory:</strong> Refuerzo cognitivo</li>
                 </ul>
                 <div class="plan-price">$63.000 ARS</div>
-                <a href="https://elena-companion-api.onrender.com/crear-preferencia-pago?plan=SUITE" target="_blank" class="pay-btn">Suscribirme</a>
+                <a href="/pagar/SUITE" class="pay-btn">Suscribirme</a>
             </div>
         </div>
 
@@ -230,6 +234,18 @@ def crear_pago_mercadopago(plan: str = "UNICO"):
         }
     else:
         raise HTTPException(status_code=500, detail=f"Error en Mercado Pago: {res.text}")
+
+@app.get("/pagar/{plan}")
+def pagar_plan(plan: str):
+    """
+    Redirige directamente al checkout de Mercado Pago para el plan especificado.
+    """
+    res = crear_pago_mercadopago(plan)
+    link_mp = res.get("mercadopago_link_real")
+    if link_mp:
+        return RedirectResponse(url=link_mp)
+    else:
+        raise HTTPException(status_code=500, detail="No se pudo obtener el link de Mercado Pago")
 
 @app.post("/webhook/mercadopago")
 async def webhook_mercadopago(request: Request):
