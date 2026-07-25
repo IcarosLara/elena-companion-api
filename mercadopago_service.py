@@ -1,7 +1,7 @@
 import requests
 
 # TU TOKEN DIRECTO
-TOKEN_MP = "TU_ACCESS_TOKEN_REAL_AQUI"
+TOKEN_MP = "APP_USR-738297045866874-070402-5f178e96384dfbf05d797c448c7e97c6-3518229186"
 
 def generar_link_mp(plan: str):
     precios = {
