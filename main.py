@@ -109,7 +109,7 @@ def home():
 # ---------------------------------------------------------
 @app.get("/test-env")
 def test_env():
-    token = os.environ.get("MP_ACCESS_TOKEN")
+    token = os.environ.get("APP_USR-738297045866874-070402-5f178e96384dfbf05d797c448c7e97c6-3518229186")
     if token:
         return {"status": "OK", "token_inicio": token[:10] + "..."}
     return {"status": "ERROR", "mensaje": "MP_ACCESS_TOKEN no configurada"}
