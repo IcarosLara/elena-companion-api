@@ -10,7 +10,7 @@ from google.genai import types
 # IMPORTACIÓN DEL MÓDULO DE MERCADO PAGO
 from mercadopago_service import generar_link_mp
 
-app = FastAPI(title="Brunilda S.A.S. - Motor Asistencial & Gestión Directa v2.0")
+app = FastAPI(title="Brunilda S.A.S. - Motor Asistencial & Gestión Directa v2.1 (Bilingual)")
 
 # ---------------------------------------------------------
 # CONFIGURACIÓN MAESTRA DE DATOS Y SERVICIOS
@@ -58,7 +58,7 @@ class EntradaCuidado(BaseModel):
     device_id: str = "legacy_generic"
 
 # ---------------------------------------------------------
-# LANDING PAGE COMERCIAL Y LIMPIA (SIN MICRÓFONO)
+# LANDING PAGE COMERCIAL Y BILINGÜE (ESP / ENG)
 # ---------------------------------------------------------
 @app.get("/", response_class=HTMLResponse)
 def home():
@@ -112,43 +112,49 @@ h1 {{ color: #38bdf8; margin: 0; font-size: 2.2em; }}
     <h1>BRUNILDA S.A.S.</h1>
     <a href="/docs" target="_blank" class="easter-btn">🕹️ DEV CONSOLE</a>
 </div>
-<p class="subtitle">Elena Companion — Asistente Asistivo para la Tranquilidad Familiar</p>
+<p class="subtitle">Elena Companion — Asistente Asistivo / Assistive Intelligence Care</p>
 
 <div class="info-banner">
-    <h3>📋 Gestión Automatizada e Inmediata</h3>
-    <p>Al contratar tu plan, accederás directamente a la planilla maestra de seguimiento de la <strong>Dra. Elena Lara</strong>. Al completar los horarios y medicamentos de tu familiar, el sistema sincronizará automáticamente la agenda y realizará un seguimiento inteligente proactivo ante cualquier eventualidad.</p>
+    <h3>📋 Gestión Automatizada / Automated Management</h3>
+    <p><strong>ESP:</strong> Al contratar tu plan, accederás directamente a la planilla maestra de seguimiento de la <strong>Dra. Elena Lara</strong>. Al completar horarios y medicamentos, el sistema sincronizará automáticamente la agenda y realizará un seguimiento proactivo.<br>
+    <strong>ENG:</strong> Upon subscribing, you will get direct access to <strong>Dr. Elena Lara's</strong> Master Care Spreadsheet. Once schedules and medications are entered, the system automatically synchronizes calendars and triggers proactive monitoring.</p>
 </div>
 
-<h2 class="section-title">Especializaciones de Elena Companion</h2>
+<h2 class="section-title">Especializaciones / Specialized Care Modules</h2>
 <div class="modules-grid">
     <div class="module-card">
         <h4>👩‍⚕️ Elena Senior</h4>
-        <p>Monitoreo integral, recordatorio estricto de medicación y asistencia pasiva para adultos mayores.</p>
+        <p><strong>ESP:</strong> Monitoreo integral y recordatorio estricto de medicación para adultos mayores.<br>
+        <strong>ENG:</strong> Comprehensive monitoring and strict medication reminders for seniors.</p>
     </div>
     <div class="module-card">
         <h4>👶 Elena Baby</h4>
-        <p>Acompañamiento en la crianza, seguimiento del crecimiento, vacunas y controles pediátricos.</p>
+        <p><strong>ESP:</strong> Acompañamiento en la crianza, vacunas y controles pediátricos.<br>
+        <strong>ENG:</strong> Childcare guidance, vaccination tracking, and pediatric checkup scheduling.</p>
     </div>
     <div class="module-card">
         <h4>♿ Elena Care</h4>
-        <p>Asistencia especializada para personas con discapacidad funcional o motriz.</p>
+        <p><strong>ESP:</strong> Asistencia especializada para personas con discapacidad funcional.<br>
+        <strong>ENG:</strong> Specialized assistance for individuals with functional disabilities.</p>
     </div>
     <div class="module-card">
         <h4>❤️ Elena Recovery</h4>
-        <p>Supervisión y soporte en rehabilitación postoperatoria y tratamientos médicos cronometrados.</p>
+        <p><strong>ESP:</strong> Soporte en rehabilitación postoperatoria y tratamientos cronometrados.<br>
+        <strong>ENG:</strong> Post-surgery rehabilitation support and timed medical care tracking.</p>
     </div>
     <div class="module-card">
         <h4>🧠 Elena Memory</h4>
-        <p>Estimulación cognitiva pasiva y contención estructurada para Alzheimer o pérdida de memoria.</p>
+        <p><strong>ESP:</strong> Estimulación cognitiva pasiva para Alzheimer o pérdida de memoria.<br>
+        <strong>ENG:</strong> Passive cognitive stimulation for Alzheimer’s and progressive memory loss.</p>
     </div>
 </div>
 
-<h2 class="section-title">Planes de Suscripción</h2>
+<h2 class="section-title">Planes de Suscripción / Subscription Plans</h2>
 <div class="plans">
     <div class="card">
         <div>
             <h3>Elena Único</h3>
-            <p style="color:#94a3b8; font-size:0.85em;">1 Módulo de especialización.</p>
+            <p style="color:#94a3b8; font-size:0.85em;">1 Módulo / 1 Care Module.</p>
             <div class="price">$6.000 ARS</div>
         </div>
         <button onclick="abrirTerminos('UNICO')" class="btn-pay">Contratar Plan</button>
@@ -156,7 +162,7 @@ h1 {{ color: #38bdf8; margin: 0; font-size: 2.2em; }}
     <div class="card">
         <div>
             <h3>Elena Dúo</h3>
-            <p style="color:#94a3b8; font-size:0.85em;">2 Módulos combinados.</p>
+            <p style="color:#94a3b8; font-size:0.85em;">2 Módulos / 2 Combined Modules.</p>
             <div class="price">$12.000 ARS</div>
         </div>
         <button onclick="abrirTerminos('DUO')" class="btn-pay">Contratar Plan</button>
@@ -164,30 +170,33 @@ h1 {{ color: #38bdf8; margin: 0; font-size: 2.2em; }}
     <div class="card" style="border-color:#f59e0b;">
         <div>
             <h3>Elena Premium Suite</h3>
-            <p style="color:#f59e0b; font-size:0.85em; font-weight:bold;">Acceso completo a los 5 Módulos.</p>
+            <p style="color:#f59e0b; font-size:0.85em; font-weight:bold;">Suite Completa (5 Módulos / Full Access).</p>
             <div class="price">$18.000 ARS</div>
         </div>
         <button onclick="abrirTerminos('SUITE')" class="btn-pay" style="background:#f59e0b; color:#000;">Contratar Plan</button>
     </div>
 </div>
 
-<p style="text-align:center; margin-top:25px; color:#94a3b8; font-size: 0.9em;">🌐 Planes Internacionales: $5.00 USD/mes vía PayPal Factura Oficial</p>
+<p style="text-align:center; margin-top:25px; color:#94a3b8; font-size: 0.9em;">🌐 Global International Plans: $5.00 USD/month via PayPal Official Invoice</p>
 </div>
 
 <div id="modalTerminos" class="modal-overlay">
     <div class="modal-content">
-        <h2 style="color:#38bdf8; margin: 0 0 10px 0; font-size:1.3em;">Términos & Condiciones del Servicio</h2>
+        <h2 style="color:#38bdf8; margin: 0 0 10px 0; font-size:1.3em;">Términos & Condiciones / Terms & Conditions</h2>
         <div class="modal-body">
-            <h3>Términos del Servicio y Consentimiento de Privacidad</h3>
+            <h3>ESP: Términos del Servicio y Privacidad</h3>
             <p>Al contratar Elena Companion (Dra. Elena Lara), el usuario autoriza la gestión automatizada de planillas de seguimiento médico, agendamiento y alertas asistenciales bajo Ley 25.326 y estándares HIPAA.</p>
+
+            <h3 style="margin-top:15px;">ENG: Terms of Service and Privacy Policy</h3>
+            <p>By subscribing to Elena Companion (Dr. Elena Lara), the user grants authorization for automated medical tracking spreadsheet management, calendar synchronization, and healthcare alerts pursuant to Argentina Law 25.326 and US HIPAA rules.</p>
         </div>
         <div class="accept-container">
             <input type="checkbox" id="checkAcepto" onchange="validarAceptacion()">
-            <label for="checkAcepto">Acepto los Términos y Condiciones de Privacidad.</label>
+            <label for="checkAcepto">Acepto los Términos y Condiciones. / I agree to the Terms & Conditions.</label>
         </div>
         <div class="modal-actions">
-            <button onclick="cerrarTerminos()" class="btn-cancel">Cancelar</button>
-            <button id="btnIrAPagar" disabled onclick="procederAlPago()" class="btn-confirm">Aceptar e Ir a Pagar</button>
+            <button onclick="cerrarTerminos()" class="btn-cancel">Cancelar / Cancel</button>
+            <button id="btnIrAPagar" disabled onclick="procederAlPago()" class="btn-confirm">Aceptar e Ir a Pagar / Agree & Proceed</button>
         </div>
     </div>
 </div>
@@ -214,7 +223,7 @@ function procederAlPago() {{
 </html>"""
 
 # ---------------------------------------------------------
-# PANTALLA POST-PAGO: REDIRECCIÓN DIRECTA A GOOGLE SHEETS
+# PANTALLA POST-PAGO BILINGÜE: REDIRECCIÓN DIRECTA A GOOGLE SHEETS
 # ---------------------------------------------------------
 @app.get("/pago-exitoso", response_class=HTMLResponse)
 def pago_exitoso():
@@ -222,7 +231,7 @@ def pago_exitoso():
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Pago Aprobado - Acceso al Registro Médico</title>
+<title>Pago Aprobado / Payment Approved</title>
 <style>
 body {{ font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #0f172a; color: #f8fafc; padding: 40px; text-align: center; }}
 .card {{ max-width: 650px; margin: 0 auto; background: #1e293b; padding: 40px; border-radius: 12px; border-left: 6px solid #22c55e; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }}
@@ -231,7 +240,6 @@ h1 {{ color: #22c55e; margin-bottom: 10px; }}
 .btn-sheet:hover {{ transform: scale(1.05); background: #16a34a; color: #fff; }}
 </style>
 <script>
-// Redirige automáticamente a la plantilla de Google Sheets tras 3 segundos
 window.onload = function() {{
     setTimeout(function() {{
         window.location.href = "{SPREADSHEET_URL}";
@@ -241,15 +249,17 @@ window.onload = function() {{
 </head>
 <body>
 <div class="card">
-    <h1>🎉 ¡Suscripción Confirmada!</h1>
-    <p>Gracias por confiar en <strong>Brunilda S.A.S.</strong> La Dra. Elena Lara ha activado tu cuenta.</p>
+    <h1>🎉 ¡Suscripción Confirmada / Subscription Confirmed!</h1>
+    <p>Gracias por confiar en <strong>Brunilda S.A.S.</strong> La Dra. Elena Lara ha activado tu cuenta.<br>
+    Thank you for choosing <strong>Brunilda S.A.S.</strong> Dr. Elena Lara has activated your service.</p>
     
     <div style="background:#0f172a; padding:20px; border-radius:8px; margin:20px 0; text-align:left; line-height:1.6; color:#cbd5e1;">
-        <p style="margin:0 0 10px 0; color:#38bdf8;"><strong>📋 Redirigiendo a tu Planilla Maestra de Seguimiento...</strong></p>
-        <p style="margin:0;">Allí podrás cargar las rutinas, medicamentos y turnos médicos. La Dra. Elena Lara sincronizará la agenda y emitirá las verificaciones y alertas preventivas automáticamente.</p>
+        <p style="margin:0 0 10px 0; color:#38bdf8;"><strong>📋 Redirigiendo a tu Planilla Maestra / Redirecting to your Master Care Sheet...</strong></p>
+        <p style="margin:0;">ESP: Podrás cargar rutinas, medicamentos y turnos médicos. La Dra. Elena Lara sincronizará la agenda y emitirá las verificaciones automáticamente.<br>
+        ENG: Enter routines, medications, and medical appointments. Dr. Elena Lara will synchronize calendars and trigger automated verifications.</p>
     </div>
 
-    <a href="{SPREADSHEET_URL}" target="_blank" class="btn-sheet">📊 ABRIR PLANILLA EN GOOGLE SHEETS</a>
+    <a href="{SPREADSHEET_URL}" target="_blank" class="btn-sheet">📊 ABRIR PLANILLA / OPEN GOOGLE SHEET</a>
 </div>
 </body>
 </html>"""
