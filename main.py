@@ -272,7 +272,7 @@ def analizar(datos: EntradaCuidado):
     system_instruction_completo = prompt_modulo + "\n" + PROMPT_SISTEMA_BASE
     
     try:
-        response = client.models.generate_content(
+        response = client.models.generate content(
             model='gemini-2.5-flash',
             contents=datos.texto_o_transcripcion,
             config=types.GenerateContentConfig(
