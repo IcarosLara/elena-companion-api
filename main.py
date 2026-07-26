@@ -61,7 +61,7 @@ class EntradaCuidado(BaseModel):
     device_id: str = "legacy_generic"
 
 # ---------------------------------------------------------
-# LANDING PAGE OFICIAL CON EXPERIENCIA DE VOZ Y EASTER EGG
+# LANDING PAGE OFICIAL CON EXPERIENCIA DE VOZ MEJORADA
 # ---------------------------------------------------------
 @app.get("/", response_class=HTMLResponse)
 def home():
@@ -84,16 +84,15 @@ h1 { color: #38bdf8; margin: 0; font-size: 2.2em; cursor: pointer; user-select: 
 
 .subtitle { text-align: center; color: #94a3b8; margin-bottom: 25px; font-weight: 300; }
 
-/* PANEL DE COMANDO POR VOZ DIRECTO */
+/* PANEL DE COMANDO POR VOZ DIRECTO ESTILO WHATSAPP */
 .voice-panel { background: #0f172a; border: 2px solid #38bdf8; padding: 25px; border-radius: 12px; text-align: center; margin-bottom: 30px; box-shadow: 0 0 15px rgba(56,189,248,0.15); }
-.mic-btn { width: 90px; height: 90px; border-radius: 50%; background: #0284c7; color: white; border: none; font-size: 2.5em; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 0 20px rgba(2,132,199,0.5); outline: none; margin-bottom: 15px; }
-.mic-btn:hover { transform: scale(1.08); background: #0369a1; }
-.mic-btn.listening { background: #ef4444; animation: pulse 1.5s infinite; box-shadow: 0 0 25px rgba(239,68,68,0.8); }
+.mic-btn { width: 100px; height: 100px; border-radius: 50%; background: #0284c7; color: white; border: none; font-size: 2.8em; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 0 20px rgba(2,132,199,0.5); outline: none; margin-bottom: 15px; user-select: none; -webkit-tap-highlight-color: transparent; }
+.mic-btn:active, .mic-btn.listening { background: #ef4444; transform: scale(1.12); box-shadow: 0 0 30px rgba(239,68,68,0.8); animation: pulse 1.2s infinite; }
 
 @keyframes pulse {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.1); }
-    100% { transform: scale(1); }
+    0% { transform: scale(1.05); }
+    50% { transform: scale(1.15); }
+    100% { transform: scale(1.05); }
 }
 
 .selector-modulo { background: #1e293b; color: #f8fafc; border: 1px solid #475569; padding: 8px 15px; border-radius: 6px; font-size: 0.95em; margin-bottom: 15px; cursor: pointer; }
@@ -114,7 +113,7 @@ h1 { color: #38bdf8; margin: 0; font-size: 2.2em; cursor: pointer; user-select: 
 .price { font-size: 1.5em; color: #38bdf8; font-weight: bold; margin: 10px 0; }
 .btn-pay { display: inline-block; background: #0284c7; color: #fff; padding: 10px 15px; border-radius: 6px; text-decoration: none; font-weight: bold; border: none; cursor: pointer; font-size: 1em; width: 100%; }
 
-/* MODAL DE TERMINOS Y CONDICIONES */
+/* MODAL TERMINOS */
 .modal-overlay { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.85); z-index: 1000; justify-content: center; align-items: center; }
 .modal-content { background: #1e293b; max-width: 750px; width: 90%; max-height: 85vh; padding: 25px; border-radius: 10px; border: 1px solid #475569; display: flex; flex-direction: column; }
 .modal-body { overflow-y: auto; padding-right: 10px; font-size: 0.85em; color: #cbd5e1; line-height: 1.5; margin-bottom: 15px; background: #0f172a; padding: 15px; border-radius: 6px; }
@@ -143,8 +142,8 @@ h1 { color: #38bdf8; margin: 0; font-size: 2.2em; cursor: pointer; user-select: 
         <option value="MEMORY">🧠 Elena Memory (Alzheimer y Memoria)</option>
     </select>
     <br>
-    <button id="btnMic" onclick="toggleEscucha()" class="mic-btn">🎙️</button>
-    <div id="statusText" class="status-text">Presioná el micrófono y hablá de corrido...</div>
+    <button id="btnMic" class="mic-btn">🎙️</button>
+    <div id="statusText" class="status-text">Mantené apretado o tocá para hablar a tu ritmo...</div>
     <div id="responseCard" class="response-card"></div>
 </div>
 
@@ -223,62 +222,115 @@ h1 { color: #38bdf8; margin: 0; font-size: 2.2em; cursor: pointer; user-select: 
 
 <script>
 // ---------------------------------------------------------
-// LÓGICA DE ESCUCHA POR VOZ (SPEECH TO TEXT) + HADOUKEN
+// RECONOCIMIENTO DE VOZ CONTINUO Y MANTENER APRETADO
 // ---------------------------------------------------------
 let escuchando = false;
 let recognition;
+let textoAcumulado = "";
+const btnMic = document.getElementById('btnMic');
 
 if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     recognition = new SpeechRecognition();
     recognition.lang = 'es-AR';
-    recognition.continuous = false;
-    recognition.interimResults = false;
+    recognition.continuous = true; // Escucha fluida continua sin cortar por pausas
+    recognition.interimResults = true; // Procesa resultados parciales en tiempo real
 
     recognition.onstart = function() {
         escuchando = true;
-        document.getElementById('btnMic').classList.add('listening');
-        document.getElementById('statusText').innerText = '🎙️ Escuchando... Hablá ahora.';
+        textoAcumulado = "";
+        btnMic.classList.add('listening');
+        document.getElementById('statusText').innerText = '🎙️ Escuchando... Hablá tranquilo y con pausas.';
     };
 
     recognition.onresult = function(event) {
-        const transcripcion = event.results[0][0].transcript;
-        document.getElementById('statusText').innerText = `🗣️ Escuchado: "${transcripcion}"`;
-        
-        // CHECK EASTER EGG POR VOZ (HADOUKEN / HADUKEN / HADOKEN)
-        const textoLimpio = transcripcion.toLowerCase().trim();
-        if (textoLimpio.includes('hadouken') || textoLimpio.includes('haduken') || textoLimpio.includes('hadoken')) {
-            activarModoHadouken();
-            return;
+        let interimTranscript = '';
+        let finalTranscript = '';
+
+        for (let i = event.resultIndex; i < event.results.length; ++i) {
+            if (event.results[i].isFinal) {
+                finalTranscript += event.results[i][0].transcript;
+            } else {
+                interimTranscript += event.results[i][0].transcript;
+            }
         }
 
-        procesarConElena(transcripcion);
+        if (finalTranscript) {
+            textoAcumulado += " " + finalTranscript;
+        }
+
+        const textoMostrado = (textoAcumulado + " " + interimTranscript).trim();
+        if (textoMostrado) {
+            document.getElementById('statusText').innerText = `🗣️ Escuchado: "${textoMostrado}"`;
+        }
     };
 
     recognition.onerror = function(event) {
-        document.getElementById('statusText').innerText = '⚠️ No se pudo procesar la voz. Volvé a intentar.';
-        detenerEscucha();
+        document.getElementById('statusText').innerText = '⚠️ Error o sin permiso de micrófono. Volvé a intentar.';
+        detenerYProcesar();
     };
 
     recognition.onend = function() {
-        detenerEscucha();
+        if (escuchando) {
+            detenerYProcesar();
+        }
     };
 } else {
-    document.getElementById('statusText').innerText = '⚠️ Tu navegador no soporta reconocimiento de voz directo.';
+    document.getElementById('statusText').innerText = '⚠️ Navegador sin soporte de voz. Usá Chrome/Edge/Safari.';
 }
 
-function toggleEscucha() {
-    if (!recognition) return;
-    if (escuchando) {
-        recognition.stop();
-    } else {
+function iniciarEscucha() {
+    if (!recognition || escuchando) return;
+    try {
         recognition.start();
+    } catch(e) {}
+}
+
+function detenerYProcesar() {
+    if (!escuchando) return;
+    escuchando = false;
+    btnMic.classList.remove('listening');
+    try {
+        recognition.stop();
+    } catch(e) {}
+
+    const textoLimpio = textoAcumulado.toLowerCase().trim();
+    if (textoLimpio.includes('hadouken') || textoLimpio.includes('haduken') || textoLimpio.includes('hadoken')) {
+        activarModoHadouken();
+        return;
+    }
+
+    if (textoAcumulado.trim().length > 0) {
+        procesarConElena(textoAcumulado.trim());
+    } else {
+        document.getElementById('statusText').innerText = 'Presioná el micrófono para hablar...';
     }
 }
 
-function detenerEscucha() {
-    escuchando = false;
-    document.getElementById('btnMic').classList.remove('listening');
+// EVENTOS DE BOTÓN (MANTENER APRETADO O TOCAR TOGGLE)
+let pressTimer;
+
+btnMic.addEventListener('mousedown', startPress);
+btnMic.addEventListener('touchstart', (e) => { e.preventDefault(); startPress(); });
+
+btnMic.addEventListener('mouseup', endPress);
+btnMic.addEventListener('touchend', (e) => { e.preventDefault(); endPress(); });
+
+function startPress() {
+    if (!escuchando) {
+        iniciarEscucha();
+    } else {
+        detenerYProcesar();
+    }
+}
+
+function endPress() {
+    // Si la persona mantuvo apretado mas de 1 segundo, al soltar procesa directo (Estilo WhatsApp)
+    if (escuchando && textoAcumulado.trim().length > 0) {
+        setTimeout(() => {
+            detenerYProcesar();
+        }, 600);
+    }
 }
 
 async function procesarConElena(texto) {
