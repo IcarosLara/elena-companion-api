@@ -61,7 +61,7 @@ class EntradaCuidado(BaseModel):
     device_id: str = "legacy_generic"
 
 # ---------------------------------------------------------
-# LANDING PAGE OFICIAL CON MEJORAS DE PRODUCTO
+# LANDING PAGE OFICIAL CON EXPERIENCIA DE VOZ Y EASTER EGG
 # ---------------------------------------------------------
 @app.get("/", response_class=HTMLResponse)
 def home():
@@ -70,16 +70,35 @@ def home():
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Brunilda S.A.S. - Dra. Elena Lara v0.5</title>
+<title>Brunilda S.A.S. - Dra. Elena Lara</title>
 <style>
 * { box-sizing: border-box; }
 body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #0f172a; color: #f8fafc; padding: 20px; margin: 0; }
-.container { max-width: 900px; margin: 0 auto; background: #1e293b; padding: 30px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
-h1 { color: #38bdf8; text-align: center; margin-bottom: 5px; font-size: 2.2em; }
-.subtitle { text-align: center; color: #94a3b8; margin-bottom: 20px; font-weight: 300; }
-.hero-problem { background: #0f172a; border-left: 4px solid #f59e0b; padding: 18px; border-radius: 6px; margin-bottom: 25px; line-height: 1.5; color: #cbd5e1; }
-.btn-doc { display: block; text-align: center; background: #22c55e; color: #fff; padding: 12px; border-radius: 6px; text-decoration: none; margin-bottom: 25px; font-weight: bold; }
-.btn-doc:hover { background: #16a34a; }
+.container { max-width: 900px; margin: 0 auto; background: #1e293b; padding: 30px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); position: relative; }
+
+/* HEADER & EASTER EGG */
+.header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+h1 { color: #38bdf8; margin: 0; font-size: 2.2em; cursor: pointer; user-select: none; }
+.easter-btn { background: #334155; color: #38bdf8; border: 1px solid #475569; padding: 6px 12px; border-radius: 20px; font-size: 0.8em; text-decoration: none; font-weight: bold; transition: all 0.3s ease; }
+.easter-btn:hover { background: #38bdf8; color: #0f172a; box-shadow: 0 0 10px #38bdf8; }
+
+.subtitle { text-align: center; color: #94a3b8; margin-bottom: 25px; font-weight: 300; }
+
+/* PANEL DE COMANDO POR VOZ DIRECTO */
+.voice-panel { background: #0f172a; border: 2px solid #38bdf8; padding: 25px; border-radius: 12px; text-align: center; margin-bottom: 30px; box-shadow: 0 0 15px rgba(56,189,248,0.15); }
+.mic-btn { width: 90px; height: 90px; border-radius: 50%; background: #0284c7; color: white; border: none; font-size: 2.5em; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 0 20px rgba(2,132,199,0.5); outline: none; margin-bottom: 15px; }
+.mic-btn:hover { transform: scale(1.08); background: #0369a1; }
+.mic-btn.listening { background: #ef4444; animation: pulse 1.5s infinite; box-shadow: 0 0 25px rgba(239,68,68,0.8); }
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+
+.selector-modulo { background: #1e293b; color: #f8fafc; border: 1px solid #475569; padding: 8px 15px; border-radius: 6px; font-size: 0.95em; margin-bottom: 15px; cursor: pointer; }
+.status-text { color: #94a3b8; font-size: 0.95em; min-height: 24px; margin-bottom: 15px; }
+.response-card { display: none; background: #1e293b; border-left: 4px solid #22c55e; padding: 15px; border-radius: 6px; text-align: left; margin-top: 15px; color: #cbd5e1; font-size: 0.9em; line-height: 1.5; }
 
 /* MODULOS */
 .section-title { color: #f8fafc; border-bottom: 2px solid #334155; padding-bottom: 8px; margin-top: 30px; }
@@ -94,15 +113,12 @@ h1 { color: #38bdf8; text-align: center; margin-bottom: 5px; font-size: 2.2em; }
 .card h3 { margin: 0 0 10px 0; color: #f8fafc; }
 .price { font-size: 1.5em; color: #38bdf8; font-weight: bold; margin: 10px 0; }
 .btn-pay { display: inline-block; background: #0284c7; color: #fff; padding: 10px 15px; border-radius: 6px; text-decoration: none; font-weight: bold; border: none; cursor: pointer; font-size: 1em; width: 100%; }
-.btn-pay:hover { background: #0369a1; }
 
 /* MODAL DE TERMINOS Y CONDICIONES */
 .modal-overlay { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.85); z-index: 1000; justify-content: center; align-items: center; }
 .modal-content { background: #1e293b; max-width: 750px; width: 90%; max-height: 85vh; padding: 25px; border-radius: 10px; border: 1px solid #475569; display: flex; flex-direction: column; }
 .modal-body { overflow-y: auto; padding-right: 10px; font-size: 0.85em; color: #cbd5e1; line-height: 1.5; margin-bottom: 15px; background: #0f172a; padding: 15px; border-radius: 6px; }
-.modal-body h3 { color: #38bdf8; margin-top: 15px; margin-bottom: 5px; }
 .accept-container { display: flex; align-items: center; gap: 10px; margin-bottom: 15px; font-size: 0.9em; color: #f8fafc; }
-.accept-container input { width: 18px; height: 18px; cursor: pointer; }
 .modal-actions { display: flex; gap: 10px; }
 .btn-cancel { background: #64748b; color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; width: 30%; font-weight: bold; }
 .btn-confirm { background: #22c55e; color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; width: 70%; font-weight: bold; }
@@ -112,47 +128,56 @@ h1 { color: #38bdf8; text-align: center; margin-bottom: 5px; font-size: 2.2em; }
 <body>
 
 <div class="container">
-<h1>BRUNILDA S.A.S.</h1>
-<p class="subtitle">Elena Companion — Inteligencia Asistiva para la Tranquilidad Familiar (v0.5)</p>
-
-<div class="hero-problem">
-    <strong>💡 La paz mental no tiene precio:</strong> Cuando un ser querido envejece o requiere cuidados especiales, una sola distracción puede convertirse en una emergencia. Elena Companion actúa como una memoria auxiliar pasiva que escucha, organiza, recuerda y alerta para proteger la autonomía de tu familia.
+<div class="header-top">
+    <h1 id="tituloLogo" onclick="secretClickCount()">BRUNILDA S.A.S.</h1>
+    <a href="/docs" target="_blank" class="easter-btn">🕹️ DEV CONSOLE</a>
 </div>
+<p class="subtitle">Elena Companion — Asistente de Voz para la Tranquilidad Familiar</p>
 
-<a href="/docs" target="_blank" class="btn-doc">🚀 PROBAR INTERFAZ INTERACTIVA Y API (/docs)</a>
+<div class="voice-panel">
+    <select id="moduloSelect" class="selector-modulo">
+        <option value="SENIOR">👩‍⚕️ Elena Senior (Adultos Mayores)</option>
+        <option value="BABY">👶 Elena Baby (Crianza y Pediatría)</option>
+        <option value="CARE">♿ Elena Care (Discapacidad y Asistencia)</option>
+        <option value="RECOVERY">❤️ Elena Recovery (Postoperatorios)</option>
+        <option value="MEMORY">🧠 Elena Memory (Alzheimer y Memoria)</option>
+    </select>
+    <br>
+    <button id="btnMic" onclick="toggleEscucha()" class="mic-btn">🎙️</button>
+    <div id="statusText" class="status-text">Presioná el micrófono y hablá de corrido...</div>
+    <div id="responseCard" class="response-card"></div>
+</div>
 
 <h2 class="section-title">Especializaciones de Elena Companion</h2>
 <div class="modules-grid">
     <div class="module-card">
         <h4>👩‍⚕️ Elena Senior</h4>
-        <p>Monitoreo integral, recordatorio estricto de medicación, prevención de olvidos y asistencia pasiva doméstica para adultos mayores.</p>
+        <p>Monitoreo integral, recordatorio estricto de medicación y asistencia pasiva para adultos mayores.</p>
     </div>
     <div class="module-card">
         <h4>👶 Elena Baby</h4>
-        <p>Acompañamiento en la crianza, seguimiento del crecimiento, recordatorios de vacunas, alimentación, sueño y controles pediátricos.</p>
+        <p>Acompañamiento en la crianza, seguimiento del crecimiento, vacunas y controles pediátricos.</p>
     </div>
     <div class="module-card">
         <h4>♿ Elena Care</h4>
-        <p>Asistencia especializada para personas con discapacidad funcional o motriz, garantizando respuesta activa y coordinación de cuidadores.</p>
+        <p>Asistencia especializada para personas con discapacidad funcional o motriz.</p>
     </div>
     <div class="module-card">
         <h4>❤️ Elena Recovery</h4>
-        <p>Supervisión y soporte en procesos de rehabilitación postoperatoria, kinesiológica y tratamientos médicos cronometrados.</p>
+        <p>Supervisión y soporte en rehabilitación postoperatoria y tratamientos médicos cronometrados.</p>
     </div>
     <div class="module-card">
         <h4>🧠 Elena Memory</h4>
-        <p>Estimulación cognitiva pasiva y contención estructurada para pacientes con Alzheimer, demencia senil o pérdida de memoria progresiva.</p>
+        <p>Estimulación cognitiva pasiva y contención estructurada para Alzheimer o pérdida de memoria.</p>
     </div>
 </div>
 
 <h2 class="section-title">Planes de Suscripción</h2>
-<p style="color:#94a3b8; font-size: 0.9em; margin-bottom: 15px;">Elegí la cobertura que mejor se adapte a las necesidades de tu hogar:</p>
-
 <div class="plans">
     <div class="card">
         <div>
             <h3>Elena Único</h3>
-            <p style="color:#94a3b8; font-size:0.85em;">Elegís <strong>1 Módulo</strong> de especialización.</p>
+            <p style="color:#94a3b8; font-size:0.85em;">1 Módulo de especialización.</p>
             <div class="price">$6.000 ARS</div>
         </div>
         <button onclick="abrirTerminos('UNICO')" class="btn-pay">Suscribirme</button>
@@ -160,7 +185,7 @@ h1 { color: #38bdf8; text-align: center; margin-bottom: 5px; font-size: 2.2em; }
     <div class="card">
         <div>
             <h3>Elena Dúo</h3>
-            <p style="color:#94a3b8; font-size:0.85em;">Elegís <strong>2 Módulos</strong> combinados.</p>
+            <p style="color:#94a3b8; font-size:0.85em;">2 Módulos combinados.</p>
             <div class="price">$12.000 ARS</div>
         </div>
         <button onclick="abrirTerminos('DUO')" class="btn-pay">Suscribirme</button>
@@ -180,30 +205,15 @@ h1 { color: #38bdf8; text-align: center; margin-bottom: 5px; font-size: 2.2em; }
 
 <div id="modalTerminos" class="modal-overlay">
     <div class="modal-content">
-        <h2 style="color:#38bdf8; margin: 0 0 10px 0; font-size:1.3em;">Términos & Condiciones del Servicio / Terms & Conditions</h2>
+        <h2 style="color:#38bdf8; margin: 0 0 10px 0; font-size:1.3em;">Términos & Condiciones del Servicio</h2>
         <div class="modal-body">
-            <h3>ESP: Términos del Servicio y Consentimiento de Privacidad</h3>
-            <p>Al contratar cualquiera de los planes de asistencia de Brunilda S.A.S. (Dra. Elena Lara), el usuario/tutor acepta las siguientes cláusulas bajo la legislación de la República Argentina (Ley 25.326 de Protección de Datos), HIPAA (EE.UU.) y GDPR (Unión Europea):</p>
-            <ul>
-                <li><strong>Grabación y Escucha Asistiva Pasiva:</strong> El usuario autoriza expresamente a la aplicación y al motor de IA a procesar capturas de audio y eventos en segundo plano, **incluso con la pantalla del dispositivo bloqueada**, para la detección inmediata de crisis sanitarias o llamadas de auxilio.</li>
-                <li><strong>Privacidad y Descarte Automático:</strong> Toda conversación o audio capturado que resulte irrelevante para la prestación del servicio asistencial será **ignorado y destruido inmediatamente**, sin quedar almacenado en servidores permanentes.</li>
-                <li><strong>Comunicaciones y Agenda Médica:</strong> El usuario autoriza a la Dra. Elena Lara a agendar al tutor como contacto en Google Contacts, emitir reportes privados por correo electrónico, gestionar citas automáticas en Google Calendar y enviar notificaciones urgentes por WhatsApp o llamadas en situaciones de extrema prioridad.</li>
-            </ul>
-
-            <h3>ENG: Terms of Service and Privacy Consent</h3>
-            <p>By subscribing to any plan offered by Brunilda S.A.S. (Dr. Elena Lara), you agree to the following terms pursuant to Argentina Law 25.326, US HIPAA privacy rules, and EU GDPR guidelines:</p>
-            <ul>
-                <li><strong>Passive Assistive Recording:</strong> You grant permission for passive background audio monitoring, **including when the device screen is locked**, solely for detecting health emergencies or distress signals.</li>
-                <li><strong>Strict Privacy Filtering:</strong> Any audio or private conversation unrelated to the care service will be **automatically discarded and deleted**, ensuring strict personal data confidentiality.</li>
-                <li><strong>Authorized Channels:</strong> The user authorizes Dr. Elena Lara to add tutors to Google Contacts, send private progress emails, schedule Google Calendar medical alerts, and contact via WhatsApp only for urgent, critical notifications.</li>
-            </ul>
+            <h3>Términos del Servicio y Consentimiento de Privacidad</h3>
+            <p>Al utilizar Elena Companion (Dra. Elena Lara), el usuario autoriza el procesamiento pasivo de comandos de voz para la gestión de agendas médicas y supervisión de cuidados bajo Ley 25.326 y estándares HIPAA.</p>
         </div>
-
         <div class="accept-container">
             <input type="checkbox" id="checkAcepto" onchange="validarAceptacion()">
-            <label for="checkAcepto">He leído y acepto expresamente los Términos, Condiciones y Políticas de Privacidad. / I have read and agree to the Terms & Privacy Policy.</label>
+            <label for="checkAcepto">Acepto los Términos y Condiciones de Privacidad.</label>
         </div>
-
         <div class="modal-actions">
             <button onclick="cerrarTerminos()" class="btn-cancel">Cancelar</button>
             <button id="btnIrAPagar" disabled onclick="procederAlPago()" class="btn-confirm">Aceptar e Ir a Pagar</button>
@@ -212,28 +222,139 @@ h1 { color: #38bdf8; text-align: center; margin-bottom: 5px; font-size: 2.2em; }
 </div>
 
 <script>
-let planSeleccionado = '';
+// ---------------------------------------------------------
+// LÓGICA DE ESCUCHA POR VOZ (SPEECH TO TEXT) + HADOUKEN
+// ---------------------------------------------------------
+let escuchando = false;
+let recognition;
 
+if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    recognition = new SpeechRecognition();
+    recognition.lang = 'es-AR';
+    recognition.continuous = false;
+    recognition.interimResults = false;
+
+    recognition.onstart = function() {
+        escuchando = true;
+        document.getElementById('btnMic').classList.add('listening');
+        document.getElementById('statusText').innerText = '🎙️ Escuchando... Hablá ahora.';
+    };
+
+    recognition.onresult = function(event) {
+        const transcripcion = event.results[0][0].transcript;
+        document.getElementById('statusText').innerText = `🗣️ Escuchado: "${transcripcion}"`;
+        
+        // CHECK EASTER EGG POR VOZ (HADOUKEN / HADUKEN / HADOKEN)
+        const textoLimpio = transcripcion.toLowerCase().trim();
+        if (textoLimpio.includes('hadouken') || textoLimpio.includes('haduken') || textoLimpio.includes('hadoken')) {
+            activarModoHadouken();
+            return;
+        }
+
+        procesarConElena(transcripcion);
+    };
+
+    recognition.onerror = function(event) {
+        document.getElementById('statusText').innerText = '⚠️ No se pudo procesar la voz. Volvé a intentar.';
+        detenerEscucha();
+    };
+
+    recognition.onend = function() {
+        detenerEscucha();
+    };
+} else {
+    document.getElementById('statusText').innerText = '⚠️ Tu navegador no soporta reconocimiento de voz directo.';
+}
+
+function toggleEscucha() {
+    if (!recognition) return;
+    if (escuchando) {
+        recognition.stop();
+    } else {
+        recognition.start();
+    }
+}
+
+function detenerEscucha() {
+    escuchando = false;
+    document.getElementById('btnMic').classList.remove('listening');
+}
+
+async function procesarConElena(texto) {
+    const modulo = document.getElementById('moduloSelect').value;
+    const card = document.getElementById('responseCard');
+    card.style.display = 'block';
+    card.innerHTML = '⚙️ <i>La Dra. Elena Lara está procesando la solicitud...</i>';
+
+    try {
+        const response = await fetch('/analizar', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ texto_o_transcripcion: texto, modulo: modulo })
+        });
+        const data = await response.json();
+        
+        let htmlResponse = `<strong>👩‍⚕️ Dra. Elena Lara (CEO) - Brunilda S.A.S.</strong><br><br>`;
+        htmlResponse += `<pre style="white-space: pre-wrap; font-family: inherit; font-size:0.9em; color:#38bdf8;">${JSON.stringify(data, null, 2)}</pre>`;
+        card.innerHTML = htmlResponse;
+    } catch (e) {
+        card.innerHTML = '❌ Error al comunicar con el motor de la Dra. Elena.';
+    }
+}
+
+// ---------------------------------------------------------
+// EASTER EGGS PARA LOS JUECES (🎮 HADOUKEN & KONAMI CODE)
+// ---------------------------------------------------------
+function activarModoHadouken() {
+    alert("💥 ¡HADOUKEN! 🎮\n¡Combo especial detectado por comando de voz!\nRedirigiendo a Swagger API Docs (/docs)...");
+    window.location.href = '/docs';
+}
+
+const konamiCode = ['ArrowUp','ArrowUp','ArrowDown','ArrowDown','ArrowLeft','ArrowRight','ArrowLeft','ArrowRight','b','a'];
+let konamiPosition = 0;
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === konamiCode[konamiPosition]) {
+        konamiPosition++;
+        if (konamiPosition === konamiCode.length) {
+            activarModoJuez();
+            konamiPosition = 0;
+        }
+    } else {
+        konamiPosition = 0;
+    }
+});
+
+let clickCount = 0;
+function secretClickCount() {
+    clickCount++;
+    if (clickCount >= 3) {
+        activarModoJuez();
+        clickCount = 0;
+    }
+}
+
+function activarModoJuez() {
+    alert("🎮 ¡EASTER EGG DESBLOQUEADO! 🎮\nBienvenido a la Consola de Desarrolladores de Brunilda S.A.S.\nRedirigiendo a Swagger API Docs (/docs)...");
+    window.location.href = '/docs';
+}
+
+// MODAL LÓGICA
+let planSeleccionado = '';
 function abrirTerminos(plan) {
     planSeleccionado = plan;
     document.getElementById('checkAcepto').checked = false;
     document.getElementById('btnIrAPagar').disabled = true;
     document.getElementById('modalTerminos').style.display = 'flex';
 }
-
-function cerrarTerminos() {
-    document.getElementById('modalTerminos').style.display = 'none';
-}
-
+function cerrarTerminos() { document.getElementById('modalTerminos').style.display = 'none'; }
 function validarAceptacion() {
     const check = document.getElementById('checkAcepto');
     document.getElementById('btnIrAPagar').disabled = !check.checked;
 }
-
 function procederAlPago() {
-    if (planSeleccionado) {
-        window.location.href = `/pagar/${planSeleccionado}`;
-    }
+    if (planSeleccionado) window.location.href = `/pagar/${planSeleccionado}`;
 }
 </script>
 
