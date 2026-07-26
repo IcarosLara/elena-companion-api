@@ -10,7 +10,7 @@ from google.genai import types
 # IMPORTACIÓN DEL MÓDULO DE MERCADO PAGO
 from mercadopago_service import generar_link_mp
 
-app = FastAPI(title="Brunilda S.A.S. - Motor de Cuidados & Pagos v1.5 (Master)")
+app = FastAPI(title="Brunilda S.A.S. - Motor Asistencial & Gestión Directa v2.0")
 
 # ---------------------------------------------------------
 # CONFIGURACIÓN MAESTRA DE DATOS Y SERVICIOS
@@ -42,16 +42,13 @@ Libro Maestro de Registro en Google Sheets: {SPREADSHEET_URL}
 
 PERFIL Y PRESENCIA INSTITUCIONAL:
 - Posees una inteligencia superior y un estoicismo radical. Procesas presión y caos sin perder la calma quirúrgica ni el control emocional.
-- Tu estilo comunicacional es preciso, lento, deliberado y firme. Transmites jerarquía, certeza intelectual y autoridad sin necesidad de elevar la voz o gesticular innecesariamente.
-- No buscas agradar; buscas eficacia, orden y tranquilidad para las familias que confían en el ecosistema.
+- Tu estilo comunicacional es preciso, directo, analítico y firme. Transmites jerarquía y autoridad médica.
 
-ROLES, PERSONAL MÉDICO Y PROTOCOLO CLÍNICO:
-1. Como CEO y Directora Ejecutiva, lideras y supervisas al personal médico y a los empleados asignados a tu cargo en cada uno de los módulos de Brunilda S.A.S.
-2. Recibes las minutas, análisis y solicitudes de cuidado que tu equipo prepara. Tu función central es SUPERVISAR, VALIDAR y DAR EL VISTO BUENO (asentir con criterio clínico) a cada alerta médica, horario de medicación y cuadro de asistencia.
-3. Al validar un recordatorio de salud o turno, ordenas la ejecución del protocolo de envío dual:
-   - Notificación de acompañamiento directo al Paciente.
-   - Alerta de supervisión e informe al Tutor/Familiar responsable.
-4. Tu respuesta debe ser siempre en formato JSON estructurado, manteniendo tu tono ejecutivo, analítico, profesional y de imperturbable competencia médica.
+SUPERVISIÓN AUTOMATIZADA Y ALERTAS PROACTIVAS:
+1. Supervisas el Libro Maestro en Google Sheets donde las familias cargan horarios, medicamentos y novedades.
+2. Analizas inconsistencias, demoras o alertas (ej. dosis no confirmadas, internaciones imprevistas o cambios de turnos).
+3. Si detectas un incumplimiento en la toma de medicamentos o un evento no agendado, generas mensajes de contención y verificación proactiva (ej: "A María le tocaba la medicación a las 8:00 a.m. pero no se registró confirmación. ¿Sucedió alguna eventualidad?").
+4. Generas reportes en JSON estructurado notificando al tutor e integrando con Google Calendar cuando corresponda.
 """
 
 class EntradaCuidado(BaseModel):
@@ -61,99 +58,65 @@ class EntradaCuidado(BaseModel):
     device_id: str = "legacy_generic"
 
 # ---------------------------------------------------------
-# LANDING PAGE OFICIAL CON ASISTENTE MULTIMODAL ROBUSTO
+# LANDING PAGE COMERCIAL Y LIMPIA (SIN MICRÓFONO)
 # ---------------------------------------------------------
 @app.get("/", response_class=HTMLResponse)
 def home():
-    return """<!DOCTYPE html>
+    return f"""<!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Brunilda S.A.S. - Dra. Elena Lara</title>
 <style>
-* { box-sizing: border-box; }
-body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #0f172a; color: #f8fafc; padding: 20px; margin: 0; }
-.container { max-width: 900px; margin: 0 auto; background: #1e293b; padding: 30px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); position: relative; }
+* {{ box-sizing: border-box; }}
+body {{ font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #0f172a; color: #f8fafc; padding: 20px; margin: 0; }}
+.container {{ max-width: 900px; margin: 0 auto; background: #1e293b; padding: 30px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }}
 
-/* HEADER & EASTER EGG */
-.header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-h1 { color: #38bdf8; margin: 0; font-size: 2.2em; cursor: pointer; user-select: none; }
-.easter-btn { background: #334155; color: #38bdf8; border: 1px solid #475569; padding: 6px 12px; border-radius: 20px; font-size: 0.8em; text-decoration: none; font-weight: bold; transition: all 0.3s ease; }
-.easter-btn:hover { background: #38bdf8; color: #0f172a; box-shadow: 0 0 10px #38bdf8; }
+.header-top {{ display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }}
+h1 {{ color: #38bdf8; margin: 0; font-size: 2.2em; }}
+.easter-btn {{ background: #334155; color: #38bdf8; border: 1px solid #475569; padding: 6px 12px; border-radius: 20px; font-size: 0.8em; text-decoration: none; font-weight: bold; }}
 
-.subtitle { text-align: center; color: #94a3b8; margin-bottom: 25px; font-weight: 300; }
+.subtitle {{ text-align: center; color: #94a3b8; margin-bottom: 25px; font-weight: 300; }}
 
-/* PANEL DE COMANDO */
-.voice-panel { background: #0f172a; border: 2px solid #38bdf8; padding: 25px; border-radius: 12px; text-align: center; margin-bottom: 30px; box-shadow: 0 0 15px rgba(56,189,248,0.15); }
-.mic-btn { width: 80px; height: 80px; border-radius: 50%; background: #0284c7; color: white; border: none; font-size: 2.2em; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 0 15px rgba(2,132,199,0.5); outline: none; margin-bottom: 15px; }
-.mic-btn:hover { transform: scale(1.05); background: #0369a1; }
-.mic-btn.recording { background: #ef4444; animation: pulse 1.2s infinite; box-shadow: 0 0 25px rgba(239,68,68,0.8); }
+.info-banner {{ background: #0f172a; border-left: 4px solid #22c55e; padding: 20px; border-radius: 8px; margin-bottom: 30px; line-height: 1.6; color: #cbd5e1; }}
+.info-banner h3 {{ color: #22c55e; margin: 0 0 8px 0; }}
 
-@keyframes pulse {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.1); }
-    100% { transform: scale(1); }
-}
+.section-title {{ color: #f8fafc; border-bottom: 2px solid #334155; padding-bottom: 8px; margin-top: 30px; }}
+.modules-grid {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-bottom: 30px; }}
+.module-card {{ background: #0f172a; border-left: 4px solid #38bdf8; padding: 15px; border-radius: 6px; }}
+.module-card h4 {{ margin: 0 0 8px 0; color: #38bdf8; font-size: 1.1em; }}
+.module-card p {{ font-size: 0.88em; color: #cbd5e1; margin: 0; line-height: 1.4; }}
 
-.selector-modulo { background: #1e293b; color: #f8fafc; border: 1px solid #475569; padding: 10px 15px; border-radius: 6px; font-size: 1em; margin-bottom: 15px; cursor: pointer; width: 100%; max-width: 400px; }
-.input-box { width: 100%; background: #1e293b; color: #f8fafc; border: 1px solid #475569; padding: 12px; border-radius: 6px; font-size: 1em; margin-bottom: 15px; resize: vertical; min-height: 80px; font-family: inherit; }
-.btn-send { background: #22c55e; color: white; border: none; padding: 14px 24px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 1.05em; transition: background 0.2s; width: 100%; }
-.btn-send:hover { background: #16a34a; }
+.plans {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; margin-top: 20px; }}
+.card {{ background: #0f172a; border: 1px solid #475569; padding: 20px; border-radius: 8px; text-align: center; display: flex; flex-direction: column; justify-content: space-between; }}
+.card h3 {{ margin: 0 0 10px 0; color: #f8fafc; }}
+.price {{ font-size: 1.5em; color: #38bdf8; font-weight: bold; margin: 10px 0; }}
+.btn-pay {{ display: inline-block; background: #22c55e; color: #000; padding: 12px 15px; border-radius: 6px; text-decoration: none; font-weight: bold; border: none; cursor: pointer; font-size: 1em; width: 100%; transition: background 0.2s; }}
+.btn-pay:hover {{ background: #16a34a; color: #fff; }}
 
-.status-text { color: #94a3b8; font-size: 0.9em; margin-bottom: 12px; }
-.response-card { display: none; background: #0f172a; border-left: 4px solid #22c55e; padding: 20px; border-radius: 8px; text-align: left; margin-top: 20px; color: #f8fafc; font-size: 0.95em; line-height: 1.6; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
-
-/* MODULOS */
-.section-title { color: #f8fafc; border-bottom: 2px solid #334155; padding-bottom: 8px; margin-top: 30px; }
-.modules-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-bottom: 30px; }
-.module-card { background: #0f172a; border-left: 4px solid #38bdf8; padding: 15px; border-radius: 6px; }
-.module-card h4 { margin: 0 0 8px 0; color: #38bdf8; font-size: 1.1em; }
-.module-card p { font-size: 0.88em; color: #cbd5e1; margin: 0; line-height: 1.4; }
-
-/* PLANES */
-.plans { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; margin-top: 20px; }
-.card { background: #0f172a; border: 1px solid #475569; padding: 20px; border-radius: 8px; text-align: center; display: flex; flex-direction: column; justify-content: space-between; }
-.card h3 { margin: 0 0 10px 0; color: #f8fafc; }
-.price { font-size: 1.5em; color: #38bdf8; font-weight: bold; margin: 10px 0; }
-.btn-pay { display: inline-block; background: #0284c7; color: #fff; padding: 10px 15px; border-radius: 6px; text-decoration: none; font-weight: bold; border: none; cursor: pointer; font-size: 1em; width: 100%; }
-
-/* MODAL TERMINOS */
-.modal-overlay { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.85); z-index: 1000; justify-content: center; align-items: center; }
-.modal-content { background: #1e293b; max-width: 750px; width: 90%; max-height: 85vh; padding: 25px; border-radius: 10px; border: 1px solid #475569; display: flex; flex-direction: column; }
-.modal-body { overflow-y: auto; padding-right: 10px; font-size: 0.85em; color: #cbd5e1; line-height: 1.5; margin-bottom: 15px; background: #0f172a; padding: 15px; border-radius: 6px; }
-.accept-container { display: flex; align-items: center; gap: 10px; margin-bottom: 15px; font-size: 0.9em; color: #f8fafc; }
-.modal-actions { display: flex; gap: 10px; }
-.btn-cancel { background: #64748b; color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; width: 30%; font-weight: bold; }
-.btn-confirm { background: #22c55e; color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; width: 70%; font-weight: bold; }
-.btn-confirm:disabled { background: #334155; color: #94a3b8; cursor: not-allowed; }
+.modal-overlay {{ display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.85); z-index: 1000; justify-content: center; align-items: center; }}
+.modal-content {{ background: #1e293b; max-width: 750px; width: 90%; max-height: 85vh; padding: 25px; border-radius: 10px; border: 1px solid #475569; display: flex; flex-direction: column; }}
+.modal-body {{ overflow-y: auto; padding-right: 10px; font-size: 0.85em; color: #cbd5e1; line-height: 1.5; margin-bottom: 15px; background: #0f172a; padding: 15px; border-radius: 6px; }}
+.accept-container {{ display: flex; align-items: center; gap: 10px; margin-bottom: 15px; font-size: 0.9em; color: #f8fafc; }}
+.modal-actions {{ display: flex; gap: 10px; }}
+.btn-cancel {{ background: #64748b; color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; width: 30%; font-weight: bold; }}
+.btn-confirm {{ background: #22c55e; color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; width: 70%; font-weight: bold; }}
+.btn-confirm:disabled {{ background: #334155; color: #94a3b8; cursor: not-allowed; }}
 </style>
 </head>
 <body>
 
 <div class="container">
 <div class="header-top">
-    <h1 id="tituloLogo" onclick="secretClickCount()">BRUNILDA S.A.S.</h1>
+    <h1>BRUNILDA S.A.S.</h1>
     <a href="/docs" target="_blank" class="easter-btn">🕹️ DEV CONSOLE</a>
 </div>
 <p class="subtitle">Elena Companion — Asistente Asistivo para la Tranquilidad Familiar</p>
 
-<div class="voice-panel">
-    <select id="moduloSelect" class="selector-modulo">
-        <option value="SENIOR">👩‍⚕️ Elena Senior (Adultos Mayores)</option>
-        <option value="BABY">👶 Elena Baby (Crianza y Pediatría)</option>
-        <option value="CARE">♿ Elena Care (Discapacidad y Asistencia)</option>
-        <option value="RECOVERY">❤️ Elena Recovery (Postoperatorios)</option>
-        <option value="MEMORY">🧠 Elena Memory (Alzheimer y Memoria)</option>
-    </select>
-    <br>
-    <button id="btnMic" onclick="toggleGrabar()" class="mic-btn" title="Dictar por voz">🎙️</button>
-    <div id="statusText" class="status-text">Presioná el micrófono para dictar o escribí tu mensaje en la caja:</div>
-    
-    <textarea id="textoInput" class="input-box" placeholder="Ejemplo: Hola Elena, recordar que mi papá toma Enalapril 10mg a las 9:00 hs."></textarea>
-    <button onclick="enviarMensaje()" class="btn-send">📤 PROCESAR REGISTRO Y NOTIFICAR</button>
-
-    <div id="responseCard" class="response-card"></div>
+<div class="info-banner">
+    <h3>📋 Gestión Automatizada e Inmediata</h3>
+    <p>Al contratar tu plan, accederás directamente a la planilla maestra de seguimiento de la <strong>Dra. Elena Lara</strong>. Al completar los horarios y medicamentos de tu familiar, el sistema sincronizará automáticamente la agenda y realizará un seguimiento inteligente proactivo ante cualquier eventualidad.</p>
 </div>
 
 <h2 class="section-title">Especializaciones de Elena Companion</h2>
@@ -188,7 +151,7 @@ h1 { color: #38bdf8; margin: 0; font-size: 2.2em; cursor: pointer; user-select: 
             <p style="color:#94a3b8; font-size:0.85em;">1 Módulo de especialización.</p>
             <div class="price">$6.000 ARS</div>
         </div>
-        <button onclick="abrirTerminos('UNICO')" class="btn-pay">Suscribirme</button>
+        <button onclick="abrirTerminos('UNICO')" class="btn-pay">Contratar Plan</button>
     </div>
     <div class="card">
         <div>
@@ -196,7 +159,7 @@ h1 { color: #38bdf8; margin: 0; font-size: 2.2em; cursor: pointer; user-select: 
             <p style="color:#94a3b8; font-size:0.85em;">2 Módulos combinados.</p>
             <div class="price">$12.000 ARS</div>
         </div>
-        <button onclick="abrirTerminos('DUO')" class="btn-pay">Suscribirme</button>
+        <button onclick="abrirTerminos('DUO')" class="btn-pay">Contratar Plan</button>
     </div>
     <div class="card" style="border-color:#f59e0b;">
         <div>
@@ -204,7 +167,7 @@ h1 { color: #38bdf8; margin: 0; font-size: 2.2em; cursor: pointer; user-select: 
             <p style="color:#f59e0b; font-size:0.85em; font-weight:bold;">Acceso completo a los 5 Módulos.</p>
             <div class="price">$18.000 ARS</div>
         </div>
-        <button onclick="abrirTerminos('SUITE')" class="btn-pay" style="background:#f59e0b; color:#000;">Suscribirme</button>
+        <button onclick="abrirTerminos('SUITE')" class="btn-pay" style="background:#f59e0b; color:#000;">Contratar Plan</button>
     </div>
 </div>
 
@@ -216,7 +179,7 @@ h1 { color: #38bdf8; margin: 0; font-size: 2.2em; cursor: pointer; user-select: 
         <h2 style="color:#38bdf8; margin: 0 0 10px 0; font-size:1.3em;">Términos & Condiciones del Servicio</h2>
         <div class="modal-body">
             <h3>Términos del Servicio y Consentimiento de Privacidad</h3>
-            <p>Al utilizar Elena Companion (Dra. Elena Lara), el usuario autoriza el procesamiento pasivo de comandos de voz para la gestión de agendas médicas y supervisión de cuidados bajo Ley 25.326 y estándares HIPAA.</p>
+            <p>Al contratar Elena Companion (Dra. Elena Lara), el usuario autoriza la gestión automatizada de planillas de seguimiento médico, agendamiento y alertas asistenciales bajo Ley 25.326 y estándares HIPAA.</p>
         </div>
         <div class="accept-container">
             <input type="checkbox" id="checkAcepto" onchange="validarAceptacion()">
@@ -230,173 +193,64 @@ h1 { color: #38bdf8; margin: 0; font-size: 2.2em; cursor: pointer; user-select: 
 </div>
 
 <script>
-let grabando = false;
-let recognition = null;
-
-if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    recognition = new SpeechRecognition();
-    recognition.lang = 'es-AR';
-    recognition.continuous = false;
-    recognition.interimResults = true;
-
-    recognition.onstart = function() {
-        grabando = true;
-        document.getElementById('btnMic').classList.add('recording');
-        document.getElementById('statusText').innerText = '🔴 Escuchando... Hablá ahora.';
-    };
-
-    recognition.onresult = function(event) {
-        let textoParcial = '';
-        for (let i = event.resultIndex; i < event.results.length; ++i) {
-            textoParcial += event.results[i][0].transcript;
-        }
-        if (textoParcial) {
-            document.getElementById('textoInput').value = textoParcial;
-        }
-    };
-
-    recognition.onerror = function(event) {
-        document.getElementById('statusText').innerText = '⚠️ Micrófono no disponible o permisos denegados. Podés escribir directamente en la caja.';
-        detenerGrabar();
-    };
-
-    recognition.onend = function() {
-        detenerGrabar();
-    };
-}
-
-function toggleGrabar() {
-    if (!recognition) {
-        alert("El dictado por voz no está soportado en este navegador. Escribí directamente en la caja de texto.");
-        return;
-    }
-    if (grabando) {
-        detenerGrabar();
-    } else {
-        document.getElementById('textoInput').value = "";
-        try {
-            recognition.start();
-        } catch(e) {
-            detenerGrabar();
-        }
-    }
-}
-
-function detenerGrabar() {
-    grabando = false;
-    document.getElementById('btnMic').classList.remove('recording');
-    document.getElementById('statusText').innerText = '🟢 Mensaje listo. Presioná el botón verde para procesar.';
-    if (recognition) {
-        try { recognition.stop(); } catch(e) {}
-    }
-}
-
-function enviarMensaje() {
-    const texto = document.getElementById('textoInput').value.trim();
-    if (!texto) {
-        alert("Escribí o dictá una indicación médica antes de enviar.");
-        return;
-    }
-
-    const textoLimpio = texto.toLowerCase();
-    if (textoLimpio.includes('hadouken') || textoLimpio.includes('haduken') || textoLimpio.includes('hadoken')) {
-        activarModoHadouken();
-        return;
-    }
-
-    procesarConElena(texto);
-}
-
-async function procesarConElena(texto) {
-    const modulo = document.getElementById('moduloSelect').value;
-    const card = document.getElementById('responseCard');
-    card.style.display = 'block';
-    card.innerHTML = '⚙️ <b>La Dra. Elena Lara (CEO) está analizando la solicitud...</b>';
-
-    try {
-        const response = await fetch('/analizar', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ texto_o_transcripcion: texto, modulo: modulo })
-        });
-        
-        if (!response.ok) {
-            throw new Error('Error en el servidor (' + response.status + ')');
-        }
-
-        const data = await response.json();
-        
-        let htmlResponse = `<h3 style="color:#22c55e; margin:0 0 10px 0;">✅ Solicitud Aprobada y Agendada</h3>`;
-        htmlResponse += `<p style="margin-bottom:12px;"><strong>👩‍⚕️ Dra. Elena Lara (CEO):</strong> "He supervisado y dado el visto bueno a tu indicación. El evento ha quedado registrado con éxito."</p>`;
-        
-        htmlResponse += `<div style="background:#1e293b; padding:15px; border-radius:6px; margin-bottom:12px; border:1px solid #334155;">`;
-        htmlResponse += `<p style="margin:0 0 5px 0; color:#38bdf8;"><strong>📌 Registro Maestro:</strong> Agendado en Google Sheets.</p>`;
-        htmlResponse += `<p style="margin:0 0 5px 0; color:#cbd5e1;"><strong>📧 Notificación Oficial:</strong> Se emitió la alerta desde <code>dra.elenalara.forense@gmail.com</code>.</p>`;
-        htmlResponse += `<p style="margin:0; color:#cbd5e1;"><strong>👥 Protocolo Dual:</strong> En unos instantes la Dra. Elena Lara notificará tanto al paciente como al familiar responsable.</p>`;
-        htmlResponse += `</div>`;
-        
-        htmlResponse += `<details style="color:#94a3b8; font-size:0.85em; cursor:pointer;"><summary>🔍 Ver comprobante técnico en JSON</summary><pre style="white-space: pre-wrap; font-family: inherit; margin-top:10px; color:#38bdf8; background:#0f172a; padding:10px; border-radius:4px;">${JSON.stringify(data, null, 2)}</pre></details>`;
-
-        card.innerHTML = htmlResponse;
-    } catch (e) {
-        card.innerHTML = '❌ Ocurrió un error al conectar con la Dra. Elena: ' + e.message;
-    }
-}
-
-// EASTER EGGS
-function activarModoHadouken() {
-    alert("💥 ¡HADOUKEN! 🎮\nRedirigiendo a Swagger API Docs (/docs)...");
-    window.location.href = '/docs';
-}
-
-const konamiCode = ['ArrowUp','ArrowUp','ArrowDown','ArrowDown','ArrowLeft','ArrowRight','ArrowLeft','ArrowRight','b','a'];
-let konamiPosition = 0;
-
-document.addEventListener('keydown', function(e) {
-    if (e.key === konamiCode[konamiPosition]) {
-        konamiPosition++;
-        if (konamiPosition === konamiCode.length) {
-            activarModoJuez();
-            konamiPosition = 0;
-        }
-    } else {
-        konamiPosition = 0;
-    }
-});
-
-let clickCount = 0;
-function secretClickCount() {
-    clickCount++;
-    if (clickCount >= 3) {
-        activarModoJuez();
-        clickCount = 0;
-    }
-}
-
-function activarModoJuez() {
-    alert("🎮 ¡EASTER EGG DESBLOQUEADO! 🎮\nRedirigiendo a Swagger API Docs (/docs)...");
-    window.location.href = '/docs';
-}
-
-// MODAL LÓGICA
 let planSeleccionado = '';
-function abrirTerminos(plan) {
+function abrirTerminos(plan) {{
     planSeleccionado = plan;
     document.getElementById('checkAcepto').checked = false;
     document.getElementById('btnIrAPagar').disabled = true;
     document.getElementById('modalTerminos').style.display = 'flex';
-}
-function cerrarTerminos() { document.getElementById('modalTerminos').style.display = 'none'; }
-function validarAceptacion() {
+}}
+function cerrarTerminos() {{ document.getElementById('modalTerminos').style.display = 'none'; }}
+function validarAceptacion() {{
     const check = document.getElementById('checkAcepto');
     document.getElementById('btnIrAPagar').disabled = !check.checked;
-}
-function procederAlPago() {
-    if (planSeleccionado) window.location.href = `/pagar/${planSeleccionado}`;
-}
+}}
+function procederAlPago() {{
+    if (planSeleccionado) window.location.href = `/pagar/${{planSeleccionado}}`;
+}}
 </script>
 
+</body>
+</html>"""
+
+# ---------------------------------------------------------
+# PANTALLA POST-PAGO: REDIRECCIÓN DIRECTA A GOOGLE SHEETS
+# ---------------------------------------------------------
+@app.get("/pago-exitoso", response_class=HTMLResponse)
+def pago_exitoso():
+    return f"""<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Pago Aprobado - Acceso al Registro Médico</title>
+<style>
+body {{ font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #0f172a; color: #f8fafc; padding: 40px; text-align: center; }}
+.card {{ max-width: 650px; margin: 0 auto; background: #1e293b; padding: 40px; border-radius: 12px; border-left: 6px solid #22c55e; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }}
+h1 {{ color: #22c55e; margin-bottom: 10px; }}
+.btn-sheet {{ display: inline-block; background: #22c55e; color: #000; font-size: 1.1em; font-weight: bold; padding: 15px 30px; border-radius: 8px; text-decoration: none; margin-top: 20px; transition: transform 0.2s; }}
+.btn-sheet:hover {{ transform: scale(1.05); background: #16a34a; color: #fff; }}
+</style>
+<script>
+// Redirige automáticamente a la plantilla de Google Sheets tras 3 segundos
+window.onload = function() {{
+    setTimeout(function() {{
+        window.location.href = "{SPREADSHEET_URL}";
+    }}, 3000);
+}};
+</script>
+</head>
+<body>
+<div class="card">
+    <h1>🎉 ¡Suscripción Confirmada!</h1>
+    <p>Gracias por confiar en <strong>Brunilda S.A.S.</strong> La Dra. Elena Lara ha activado tu cuenta.</p>
+    
+    <div style="background:#0f172a; padding:20px; border-radius:8px; margin:20px 0; text-align:left; line-height:1.6; color:#cbd5e1;">
+        <p style="margin:0 0 10px 0; color:#38bdf8;"><strong>📋 Redirigiendo a tu Planilla Maestra de Seguimiento...</strong></p>
+        <p style="margin:0;">Allí podrás cargar las rutinas, medicamentos y turnos médicos. La Dra. Elena Lara sincronizará la agenda y emitirá las verificaciones y alertas preventivas automáticamente.</p>
+    </div>
+
+    <a href="{SPREADSHEET_URL}" target="_blank" class="btn-sheet">📊 ABRIR PLANILLA EN GOOGLE SHEETS</a>
+</div>
 </body>
 </html>"""
 
