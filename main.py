@@ -61,7 +61,7 @@ class EntradaCuidado(BaseModel):
     device_id: str = "legacy_generic"
 
 # ---------------------------------------------------------
-# LANDING PAGE OFICIAL CON EXPERIENCIA DE VOZ Y RESPUESTA HUMANA
+# LANDING PAGE OFICIAL CON ASISTENTE MULTIMODAL ROBUSTO
 # ---------------------------------------------------------
 @app.get("/", response_class=HTMLResponse)
 def home():
@@ -84,11 +84,11 @@ h1 { color: #38bdf8; margin: 0; font-size: 2.2em; cursor: pointer; user-select: 
 
 .subtitle { text-align: center; color: #94a3b8; margin-bottom: 25px; font-weight: 300; }
 
-/* PANEL DE COMANDO POR VOZ Y TEXTO */
+/* PANEL DE COMANDO */
 .voice-panel { background: #0f172a; border: 2px solid #38bdf8; padding: 25px; border-radius: 12px; text-align: center; margin-bottom: 30px; box-shadow: 0 0 15px rgba(56,189,248,0.15); }
-.mic-btn { width: 90px; height: 90px; border-radius: 50%; background: #0284c7; color: white; border: none; font-size: 2.5em; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 0 20px rgba(2,132,199,0.5); outline: none; margin-bottom: 15px; }
-.mic-btn:hover { transform: scale(1.08); background: #0369a1; }
-.mic-btn.recording { background: #ef4444; animation: pulse 1.2s infinite; box-shadow: 0 0 30px rgba(239,68,68,0.8); }
+.mic-btn { width: 80px; height: 80px; border-radius: 50%; background: #0284c7; color: white; border: none; font-size: 2.2em; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 0 15px rgba(2,132,199,0.5); outline: none; margin-bottom: 15px; }
+.mic-btn:hover { transform: scale(1.05); background: #0369a1; }
+.mic-btn.recording { background: #ef4444; animation: pulse 1.2s infinite; box-shadow: 0 0 25px rgba(239,68,68,0.8); }
 
 @keyframes pulse {
     0% { transform: scale(1); }
@@ -96,9 +96,9 @@ h1 { color: #38bdf8; margin: 0; font-size: 2.2em; cursor: pointer; user-select: 
     100% { transform: scale(1); }
 }
 
-.selector-modulo { background: #1e293b; color: #f8fafc; border: 1px solid #475569; padding: 8px 15px; border-radius: 6px; font-size: 0.95em; margin-bottom: 15px; cursor: pointer; }
-.input-box { width: 100%; background: #1e293b; color: #f8fafc; border: 1px solid #475569; padding: 12px; border-radius: 6px; font-size: 1em; margin-bottom: 12px; resize: vertical; min-height: 60px; font-family: inherit; }
-.btn-send { background: #22c55e; color: white; border: none; padding: 12px 24px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 1em; transition: background 0.2s; width: 100%; }
+.selector-modulo { background: #1e293b; color: #f8fafc; border: 1px solid #475569; padding: 10px 15px; border-radius: 6px; font-size: 1em; margin-bottom: 15px; cursor: pointer; width: 100%; max-width: 400px; }
+.input-box { width: 100%; background: #1e293b; color: #f8fafc; border: 1px solid #475569; padding: 12px; border-radius: 6px; font-size: 1em; margin-bottom: 15px; resize: vertical; min-height: 80px; font-family: inherit; }
+.btn-send { background: #22c55e; color: white; border: none; padding: 14px 24px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 1.05em; transition: background 0.2s; width: 100%; }
 .btn-send:hover { background: #16a34a; }
 
 .status-text { color: #94a3b8; font-size: 0.9em; margin-bottom: 12px; }
@@ -147,11 +147,11 @@ h1 { color: #38bdf8; margin: 0; font-size: 2.2em; cursor: pointer; user-select: 
         <option value="MEMORY">🧠 Elena Memory (Alzheimer y Memoria)</option>
     </select>
     <br>
-    <button id="btnMic" onclick="toggleGrabar()" class="mic-btn">🎙️</button>
-    <div id="statusText" class="status-text">Tocá el micrófono para dictar o escribí abajo tu mensaje.</div>
+    <button id="btnMic" onclick="toggleGrabar()" class="mic-btn" title="Dictar por voz">🎙️</button>
+    <div id="statusText" class="status-text">Presioná el micrófono para dictar o escribí tu mensaje en la caja:</div>
     
-    <textarea id="textoInput" class="input-box" placeholder="Ej: Hola Elena, mi papá tiene que tomar Enalapril 10mg a las 9 de la mañana..."></textarea>
-    <button onclick="enviarMensaje()" class="btn-send">📤 Enviar a la Dra. Elena Lara</button>
+    <textarea id="textoInput" class="input-box" placeholder="Ejemplo: Hola Elena, recordar que mi papá toma Enalapril 10mg a las 9:00 hs."></textarea>
+    <button onclick="enviarMensaje()" class="btn-send">📤 PROCESAR REGISTRO Y NOTIFICAR</button>
 
     <div id="responseCard" class="response-card"></div>
 </div>
@@ -231,7 +231,7 @@ h1 { color: #38bdf8; margin: 0; font-size: 2.2em; cursor: pointer; user-select: 
 
 <script>
 let grabando = false;
-let recognition;
+let recognition = null;
 
 if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -257,20 +257,18 @@ if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
     };
 
     recognition.onerror = function(event) {
-        document.getElementById('statusText').innerText = '⚠️ Activa los permisos de micrófono en el navegador o escribí directamente.';
+        document.getElementById('statusText').innerText = '⚠️ Micrófono no disponible o permisos denegados. Podés escribir directamente en la caja.';
         detenerGrabar();
     };
 
     recognition.onend = function() {
         detenerGrabar();
     };
-} else {
-    document.getElementById('statusText').innerText = 'Podés escribir directamente tu mensaje en el cuadro de texto.';
 }
 
 function toggleGrabar() {
     if (!recognition) {
-        alert("Tu navegador no permite dictado por voz. Podés escribir tu solicitud en el cuadro de texto.");
+        alert("El dictado por voz no está soportado en este navegador. Escribí directamente en la caja de texto.");
         return;
     }
     if (grabando) {
@@ -288,14 +286,16 @@ function toggleGrabar() {
 function detenerGrabar() {
     grabando = false;
     document.getElementById('btnMic').classList.remove('recording');
-    document.getElementById('statusText').innerText = '🟢 Mensaje capturado. Presioná Enviar para procesar con la Dra. Elena.';
-    try { recognition.stop(); } catch(e) {}
+    document.getElementById('statusText').innerText = '🟢 Mensaje listo. Presioná el botón verde para procesar.';
+    if (recognition) {
+        try { recognition.stop(); } catch(e) {}
+    }
 }
 
 function enviarMensaje() {
     const texto = document.getElementById('textoInput').value.trim();
     if (!texto) {
-        alert("Por favor, hablá al micrófono o escribí un mensaje antes de enviar.");
+        alert("Escribí o dictá una indicación médica antes de enviar.");
         return;
     }
 
@@ -312,7 +312,7 @@ async function procesarConElena(texto) {
     const modulo = document.getElementById('moduloSelect').value;
     const card = document.getElementById('responseCard');
     card.style.display = 'block';
-    card.innerHTML = '⚙️ <b>La Dra. Elena Lara (CEO) está analizando la solicitud médica...</b>';
+    card.innerHTML = '⚙️ <b>La Dra. Elena Lara (CEO) está analizando la solicitud...</b>';
 
     try {
         const response = await fetch('/analizar', {
@@ -320,29 +320,33 @@ async function procesarConElena(texto) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ texto_o_transcripcion: texto, modulo: modulo })
         });
+        
+        if (!response.ok) {
+            throw new Error('Error en el servidor (' + response.status + ')');
+        }
+
         const data = await response.json();
         
-        // RESPUESTA MASTICADA Y CLARA PARA EL USUARIO COMÚN
         let htmlResponse = `<h3 style="color:#22c55e; margin:0 0 10px 0;">✅ Solicitud Aprobada y Agendada</h3>`;
         htmlResponse += `<p style="margin-bottom:12px;"><strong>👩‍⚕️ Dra. Elena Lara (CEO):</strong> "He supervisado y dado el visto bueno a tu indicación. El evento ha quedado registrado con éxito."</p>`;
         
         htmlResponse += `<div style="background:#1e293b; padding:15px; border-radius:6px; margin-bottom:12px; border:1px solid #334155;">`;
-        htmlResponse += `<p style="margin:0 0 5px 0; color:#38bdf8;"><strong>📌 Estado del Registro:</strong> Agendado en el Libro Maestro.</p>`;
+        htmlResponse += `<p style="margin:0 0 5px 0; color:#38bdf8;"><strong>📌 Registro Maestro:</strong> Agendado en Google Sheets.</p>`;
         htmlResponse += `<p style="margin:0 0 5px 0; color:#cbd5e1;"><strong>📧 Notificación Oficial:</strong> Se emitió la alerta desde <code>dra.elenalara.forense@gmail.com</code>.</p>`;
-        htmlResponse += `<p style="margin:0; color:#cbd5e1;"><strong>👥 Protocolo Dual:</strong> En unos instantes la Dra. Elena Lara notificará tanto al paciente como al familiar responsable con el horario correspondiente.</p>`;
+        htmlResponse += `<p style="margin:0; color:#cbd5e1;"><strong>👥 Protocolo Dual:</strong> En unos instantes la Dra. Elena Lara notificará tanto al paciente como al familiar responsable.</p>`;
         htmlResponse += `</div>`;
         
-        htmlResponse += `<details style="color:#94a3b8; font-size:0.85em; cursor:pointer;"><summary>🔍 Ver comprobante de validación clínica en JSON</summary><pre style="white-space: pre-wrap; font-family: inherit; margin-top:10px; color:#38bdf8; background:#0f172a; padding:10px; border-radius:4px;">${JSON.stringify(data, null, 2)}</pre></details>`;
+        htmlResponse += `<details style="color:#94a3b8; font-size:0.85em; cursor:pointer;"><summary>🔍 Ver comprobante técnico en JSON</summary><pre style="white-space: pre-wrap; font-family: inherit; margin-top:10px; color:#38bdf8; background:#0f172a; padding:10px; border-radius:4px;">${JSON.stringify(data, null, 2)}</pre></details>`;
 
         card.innerHTML = htmlResponse;
     } catch (e) {
-        card.innerHTML = '❌ Ocurrió un error al conectar con el servidor de la Dra. Elena Lara.';
+        card.innerHTML = '❌ Ocurrió un error al conectar con la Dra. Elena: ' + e.message;
     }
 }
 
 // EASTER EGGS
 function activarModoHadouken() {
-    alert("💥 ¡HADOUKEN! 🎮\nCombo especial detectado por comando de voz. Redirigiendo a Swagger API Docs (/docs)...");
+    alert("💥 ¡HADOUKEN! 🎮\nRedirigiendo a Swagger API Docs (/docs)...");
     window.location.href = '/docs';
 }
 
@@ -371,7 +375,7 @@ function secretClickCount() {
 }
 
 function activarModoJuez() {
-    alert("🎮 ¡EASTER EGG DESBLOQUEADO! 🎮\nBienvenido a la Consola de Desarrolladores. Redirigiendo a Swagger API Docs (/docs)...");
+    alert("🎮 ¡EASTER EGG DESBLOQUEADO! 🎮\nRedirigiendo a Swagger API Docs (/docs)...");
     window.location.href = '/docs';
 }
 
