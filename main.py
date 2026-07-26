@@ -53,7 +53,7 @@ class EntradaCuidado(BaseModel):
     device_id: str = "legacy_generic"
 
 # ---------------------------------------------------------
-# LANDING PAGE OFICIAL CON TERMINOS Y MODULOS DETALLADOS
+# LANDING PAGE OFICIAL CON MEJORAS DE PRODUCTO
 # ---------------------------------------------------------
 @app.get("/", response_class=HTMLResponse)
 def home():
@@ -68,7 +68,8 @@ def home():
 body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #0f172a; color: #f8fafc; padding: 20px; margin: 0; }
 .container { max-width: 900px; margin: 0 auto; background: #1e293b; padding: 30px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
 h1 { color: #38bdf8; text-align: center; margin-bottom: 5px; font-size: 2.2em; }
-.subtitle { text-align: center; color: #94a3b8; margin-bottom: 25px; font-weight: 300; }
+.subtitle { text-align: center; color: #94a3b8; margin-bottom: 20px; font-weight: 300; }
+.hero-problem { background: #0f172a; border-left: 4px solid #f59e0b; padding: 18px; border-radius: 6px; margin-bottom: 25px; line-height: 1.5; color: #cbd5e1; }
 .btn-doc { display: block; text-align: center; background: #22c55e; color: #fff; padding: 12px; border-radius: 6px; text-decoration: none; margin-bottom: 25px; font-weight: bold; }
 .btn-doc:hover { background: #16a34a; }
 
@@ -104,42 +105,46 @@ h1 { color: #38bdf8; text-align: center; margin-bottom: 5px; font-size: 2.2em; }
 
 <div class="container">
 <h1>BRUNILDA S.A.S.</h1>
-<p class="subtitle">Dra. Elena Lara — Ecosistema de Cuidados & Protección Asistiva (v0.5)</p>
+<p class="subtitle">Elena Companion — Inteligencia Asistiva para la Tranquilidad Familiar (v0.5)</p>
+
+<div class="hero-problem">
+    <strong>💡 La paz mental no tiene precio:</strong> Cuando un ser querido envejece o requiere cuidados especiales, una sola distracción puede convertirse en una emergencia. Elena Companion actúa como una memoria auxiliar pasiva que escucha, organiza, recuerda y alerta para proteger la autonomía de tu familia.
+</div>
 
 <a href="/docs" target="_blank" class="btn-doc">🚀 PROBAR INTERFAZ INTERACTIVA Y API (/docs)</a>
 
-<h2 class="section-title">Especializaciones del Motor Asistencial</h2>
+<h2 class="section-title">Especializaciones de Elena Companion</h2>
 <div class="modules-grid">
     <div class="module-card">
         <h4>👩‍⚕️ Elena Senior</h4>
-        <p>Monitoreo integral, recordatorio estricto de medicación, detección de caídas o emergencias domésticas para adultos mayores.</p>
+        <p>Monitoreo integral, recordatorio estricto de medicación, prevención de olvidos y asistencia pasiva doméstica para adultos mayores.</p>
     </div>
     <div class="module-card">
         <h4>👶 Elena Baby</h4>
-        <p>Acompañamiento en la crianza, control de constantes de desarrollo infantil, patrocinios y asistencia pasiva para lactantes y niños.</p>
+        <p>Acompañamiento en la crianza, seguimiento del crecimiento, recordatorios de vacunas, alimentación, sueño y controles pediátricos.</p>
     </div>
     <div class="module-card">
         <h4>♿ Elena Care</h4>
-        <p>Asistencia especializada para personas con discapacidad funcional o motriz, garantizando respuesta activa continua.</p>
+        <p>Asistencia especializada para personas con discapacidad funcional o motriz, garantizando respuesta activa y coordinación de cuidadores.</p>
     </div>
     <div class="module-card">
         <h4>❤️ Elena Recovery</h4>
-        <p>Supervisión y soporte en procesos de rehabilitación postoperatoria, lesiones kinesiológicas y tratamientos médicos complejos.</p>
+        <p>Supervisión y soporte en procesos de rehabilitación postoperatoria, kinesiológica y tratamientos médicos cronometrados.</p>
     </div>
     <div class="module-card">
         <h4>🧠 Elena Memory</h4>
-        <p>Estimulación cognitiva pasiva y contención para pacientes con Alzheimer, demencia senil o pérdida de memoria progresiva.</p>
+        <p>Estimulación cognitiva pasiva y contención estructurada para pacientes con Alzheimer, demencia senil o pérdida de memoria progresiva.</p>
     </div>
 </div>
 
 <h2 class="section-title">Planes de Suscripción</h2>
-<p style="color:#94a3b8; font-size: 0.9em; margin-bottom: 15px;">Elegí la cobertura que mejor se adapte a las necesidades de tu familia:</p>
+<p style="color:#94a3b8; font-size: 0.9em; margin-bottom: 15px;">Elegí la cobertura que mejor se adapte a las necesidades de tu hogar:</p>
 
 <div class="plans">
     <div class="card">
         <div>
             <h3>Elena Único</h3>
-            <p style="color:#94a3b8; font-size:0.85em;">Elegís <strong>1 Módulo</strong> de los 5 disponibles.</p>
+            <p style="color:#94a3b8; font-size:0.85em;">Elegís <strong>1 Módulo</strong> de especialización.</p>
             <div class="price">$6.000 ARS</div>
         </div>
         <button onclick="abrirTerminos('UNICO')" class="btn-pay">Suscribirme</button>
@@ -156,7 +161,7 @@ h1 { color: #38bdf8; text-align: center; margin-bottom: 5px; font-size: 2.2em; }
         <div>
             <h3>Elena Premium Suite</h3>
             <p style="color:#f59e0b; font-size:0.85em; font-weight:bold;">Acceso completo a los 5 Módulos.</p>
-            <div class="price">$63.000 ARS</div>
+            <div class="price">$18.000 ARS</div>
         </div>
         <button onclick="abrirTerminos('SUITE')" class="btn-pay" style="background:#f59e0b; color:#000;">Suscribirme</button>
     </div>
@@ -172,15 +177,15 @@ h1 { color: #38bdf8; text-align: center; margin-bottom: 5px; font-size: 2.2em; }
             <h3>ESP: Términos del Servicio y Consentimiento de Privacidad</h3>
             <p>Al contratar cualquiera de los planes de asistencia de Brunilda S.A.S. (Dra. Elena Lara), el usuario/tutor acepta las siguientes cláusulas bajo la legislación de la República Argentina (Ley 25.326 de Protección de Datos), HIPAA (EE.UU.) y GDPR (Unión Europea):</p>
             <ul>
-                <li><strong>Grabación y Escucha Asistiva Pasiva:</strong> El usuario autoriza expresamente a la aplicación y al motor de IA a procesar capturas de audio y eventos en segundo plano, **incluso con la pantalla del dispositivo bloqueada**, para la detección inmediata de crisis sanitarias, caídas o llamadas de auxilio.</li>
-                <li><strong>Privacidad y Descarte Automático:</strong> Toda conversación o audio capturado que resulte irrelevante para la prestación del servicio médico/asistencial será **ignorado y destruido inmediatamente**, sin quedar almacenado en servidores permanentes.</li>
-                <li><strong>Comunicaciones y Agenda Médica:</strong> El usuario autoriza a la Dra. Elena Lara a agendar al tutor como contacto en Google Contacts, emitir reportes privados por correo electrónico, gestionar citas automáticas en Google Calendar y enviar notificaciones urgentes por WhatsApp o llamadas en situaciones de extrema prioridad clínica.</li>
+                <li><strong>Grabación y Escucha Asistiva Pasiva:</strong> El usuario autoriza expresamente a la aplicación y al motor de IA a procesar capturas de audio y eventos en segundo plano, **incluso con la pantalla del dispositivo bloqueada**, para la detección inmediata de crisis sanitarias o llamadas de auxilio.</li>
+                <li><strong>Privacidad y Descarte Automático:</strong> Toda conversación o audio capturado que resulte irrelevante para la prestación del servicio asistencial será **ignorado y destruido inmediatamente**, sin quedar almacenado en servidores permanentes.</li>
+                <li><strong>Comunicaciones y Agenda Médica:</strong> El usuario autoriza a la Dra. Elena Lara a agendar al tutor como contacto en Google Contacts, emitir reportes privados por correo electrónico, gestionar citas automáticas en Google Calendar y enviar notificaciones urgentes por WhatsApp o llamadas en situaciones de extrema prioridad.</li>
             </ul>
 
             <h3>ENG: Terms of Service and Privacy Consent</h3>
             <p>By subscribing to any plan offered by Brunilda S.A.S. (Dr. Elena Lara), you agree to the following terms pursuant to Argentina Law 25.326, US HIPAA privacy rules, and EU GDPR guidelines:</p>
             <ul>
-                <li><strong>Passive Assistive Recording:</strong> You grant permission for passive background audio monitoring, **including when the device screen is locked**, solely for detecting health emergencies, falls, or distress signals.</li>
+                <li><strong>Passive Assistive Recording:</strong> You grant permission for passive background audio monitoring, **including when the device screen is locked**, solely for detecting health emergencies or distress signals.</li>
                 <li><strong>Strict Privacy Filtering:</strong> Any audio or private conversation unrelated to the care service will be **automatically discarded and deleted**, ensuring strict personal data confidentiality.</li>
                 <li><strong>Authorized Channels:</strong> The user authorizes Dr. Elena Lara to add tutors to Google Contacts, send private progress emails, schedule Google Calendar medical alerts, and contact via WhatsApp only for urgent, critical notifications.</li>
             </ul>
@@ -241,7 +246,7 @@ def obtener_planes():
         "planes_argentina_ars": [
             {"plan": "Elena Único", "precio_ars": 6000, "modulos_incluidos": 1},
             {"plan": "Elena Dúo", "precio_ars": 12000, "modulos_incluidos": 2},
-            {"plan": "Elena Premium Suite", "precio_ars": 63000, "modulos_incluidos": 5}
+            {"plan": "Elena Premium Suite", "precio_ars": 18000, "modulos_incluidos": 5}
         ],
         "planes_internacional_usd": {"precio_usd": 5.00, "pasarela": PAYPAL_GLOBAL_LINK}
     }
