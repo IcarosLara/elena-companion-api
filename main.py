@@ -61,7 +61,7 @@ class EntradaCuidado(BaseModel):
     device_id: str = "legacy_generic"
 
 # ---------------------------------------------------------
-# LANDING PAGE OFICIAL CON EXPERIENCIA DE VOZ ESTABLE
+# LANDING PAGE OFICIAL CON EXPERIENCIA DE VOZ OPTIMIZADA PARA PC
 # ---------------------------------------------------------
 @app.get("/", response_class=HTMLResponse)
 def home():
@@ -84,11 +84,11 @@ h1 { color: #38bdf8; margin: 0; font-size: 2.2em; cursor: pointer; user-select: 
 
 .subtitle { text-align: center; color: #94a3b8; margin-bottom: 25px; font-weight: 300; }
 
-/* PANEL DE COMANDO POR VOZ DIRECTO */
+/* PANEL DE COMANDO POR VOZ Y TEXTO */
 .voice-panel { background: #0f172a; border: 2px solid #38bdf8; padding: 25px; border-radius: 12px; text-align: center; margin-bottom: 30px; box-shadow: 0 0 15px rgba(56,189,248,0.15); }
 .mic-btn { width: 90px; height: 90px; border-radius: 50%; background: #0284c7; color: white; border: none; font-size: 2.5em; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 0 20px rgba(2,132,199,0.5); outline: none; margin-bottom: 15px; }
 .mic-btn:hover { transform: scale(1.08); background: #0369a1; }
-.mic-btn.listening { background: #ef4444; animation: pulse 1.5s infinite; box-shadow: 0 0 25px rgba(239,68,68,0.8); }
+.mic-btn.recording { background: #ef4444; animation: pulse 1.2s infinite; box-shadow: 0 0 30px rgba(239,68,68,0.8); }
 
 @keyframes pulse {
     0% { transform: scale(1); }
@@ -97,7 +97,11 @@ h1 { color: #38bdf8; margin: 0; font-size: 2.2em; cursor: pointer; user-select: 
 }
 
 .selector-modulo { background: #1e293b; color: #f8fafc; border: 1px solid #475569; padding: 8px 15px; border-radius: 6px; font-size: 0.95em; margin-bottom: 15px; cursor: pointer; }
-.status-text { color: #94a3b8; font-size: 0.95em; min-height: 24px; margin-bottom: 15px; }
+.input-box { width: 100%; background: #1e293b; color: #f8fafc; border: 1px solid #475569; padding: 12px; border-radius: 6px; font-size: 1em; margin-bottom: 12px; resize: vertical; min-height: 60px; font-family: inherit; }
+.btn-send { background: #22c55e; color: white; border: none; padding: 10px 20px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 1em; transition: background 0.2s; }
+.btn-send:hover { background: #16a34a; }
+
+.status-text { color: #94a3b8; font-size: 0.9em; margin-bottom: 12px; }
 .response-card { display: none; background: #1e293b; border-left: 4px solid #22c55e; padding: 15px; border-radius: 6px; text-align: left; margin-top: 15px; color: #cbd5e1; font-size: 0.9em; line-height: 1.5; }
 
 /* MODULOS */
@@ -132,7 +136,7 @@ h1 { color: #38bdf8; margin: 0; font-size: 2.2em; cursor: pointer; user-select: 
     <h1 id="tituloLogo" onclick="secretClickCount()">BRUNILDA S.A.S.</h1>
     <a href="/docs" target="_blank" class="easter-btn">🕹️ DEV CONSOLE</a>
 </div>
-<p class="subtitle">Elena Companion — Asistente de Voz para la Tranquilidad Familiar</p>
+<p class="subtitle">Elena Companion — Asistente Asistivo para la Tranquilidad Familiar</p>
 
 <div class="voice-panel">
     <select id="moduloSelect" class="selector-modulo">
@@ -143,8 +147,12 @@ h1 { color: #38bdf8; margin: 0; font-size: 2.2em; cursor: pointer; user-select: 
         <option value="MEMORY">🧠 Elena Memory (Alzheimer y Memoria)</option>
     </select>
     <br>
-    <button id="btnMic" onclick="toggleEscucha()" class="mic-btn">🎙️</button>
-    <div id="statusText" class="status-text">Tocá el micrófono para hablar...</div>
+    <button id="btnMic" onclick="toggleGrabar()" class="mic-btn">🎙️</button>
+    <div id="statusText" class="status-text">Hacé clic en el micrófono para empezar a hablar.</div>
+    
+    <textarea id="textoInput" class="input-box" placeholder="Tu mensaje dictado o escrito aparecerá acá..."></textarea>
+    <button onclick="enviarMensaje()" class="btn-send">📤 Enviar a la Dra. Elena</button>
+
     <div id="responseCard" class="response-card"></div>
 </div>
 
@@ -222,63 +230,80 @@ h1 { color: #38bdf8; margin: 0; font-size: 2.2em; cursor: pointer; user-select: 
 </div>
 
 <script>
-let escuchando = false;
+let grabando = false;
 let recognition;
 
 if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     recognition = new SpeechRecognition();
     recognition.lang = 'es-AR';
-    recognition.continuous = false;
-    recognition.interimResults = false;
+    recognition.continuous = true;
+    recognition.interimResults = true;
 
     recognition.onstart = function() {
-        escuchando = true;
-        document.getElementById('btnMic').classList.add('listening');
-        document.getElementById('statusText').innerText = '🎙️ Escuchando... Decí tu mensaje.';
+        grabando = true;
+        document.getElementById('btnMic').classList.add('recording');
+        document.getElementById('statusText').innerText = '🔴 Grabando en PC... Volvé a hacer clic en el botón rojo para detener.';
     };
 
     recognition.onresult = function(event) {
-        const transcripcion = event.results[0][0].transcript;
-        document.getElementById('statusText').innerText = `🗣️ Escuchado: "${transcripcion}"`;
-        
-        const textoLimpio = transcripcion.toLowerCase().trim();
-        if (textoLimpio.includes('hadouken') || textoLimpio.includes('haduken') || textoLimpio.includes('hadoken')) {
-            activarModoHadouken();
-            return;
+        let textoParcial = '';
+        for (let i = event.resultIndex; i < event.results.length; ++i) {
+            textoParcial += event.results[i][0].transcript;
         }
-
-        procesarConElena(transcripcion);
+        if (textoParcial) {
+            document.getElementById('textoInput').value = textoParcial;
+        }
     };
 
     recognition.onerror = function(event) {
-        document.getElementById('statusText').innerText = '⚠️ Debes dar permiso al micrófono para continuar.';
-        detenerEscucha();
+        document.getElementById('statusText').innerText = '⚠️ Asegurate de permitir el micrófono en tu navegador.';
+        detenerGrabar();
     };
 
     recognition.onend = function() {
-        detenerEscucha();
+        if (grabando) {
+            // Si el navegador intenta cortar en PC, lo forzamos a seguir escuchando
+            try { recognition.start(); } catch(e) {}
+        }
     };
 } else {
-    document.getElementById('statusText').innerText = '⚠️ Tu navegador no soporta voz. Usá Chrome o Edge.';
+    document.getElementById('statusText').innerText = '⚠️ Tu navegador no soporta micrófono directo. Podés escribir en la caja.';
 }
 
-function toggleEscucha() {
+function toggleGrabar() {
     if (!recognition) return;
-    if (escuchando) {
-        recognition.stop();
+    if (grabando) {
+        detenerGrabar();
     } else {
+        document.getElementById('textoInput').value = "";
         try {
             recognition.start();
-        } catch(e) {
-            detenerEscucha();
-        }
+        } catch(e) {}
     }
 }
 
-function detenerEscucha() {
-    escuchando = false;
-    document.getElementById('btnMic').classList.remove('listening');
+function detenerGrabar() {
+    grabando = false;
+    document.getElementById('btnMic').classList.remove('recording');
+    document.getElementById('statusText').innerText = '🟢 Grabación finalizada. Podés revisar el texto y presionar Enviar.';
+    try { recognition.stop(); } catch(e) {}
+}
+
+function enviarMensaje() {
+    const texto = document.getElementById('textoInput').value.trim();
+    if (!texto) {
+        alert("Por favor, hablá al micrófono o escribí un mensaje antes de enviar.");
+        return;
+    }
+
+    const textoLimpio = texto.toLowerCase();
+    if (textoLimpio.includes('hadouken') || textoLimpio.includes('haduken') || textoLimpio.includes('hadoken')) {
+        activarModoHadouken();
+        return;
+    }
+
+    procesarConElena(texto);
 }
 
 async function procesarConElena(texto) {
