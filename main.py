@@ -17,8 +17,8 @@ from google.genai import types
 # INICIALIZACIÓN PRINCIPAL DE FASTAPI
 # ---------------------------------------------------------
 app = FastAPI(
-    title="Brunilda S.A.S. - Super Motor Unificado v4.5",
-    description="Motor Integral Asistencial, Perfilación Conductual y Módulo Legal Julián con Chat en Vivo"
+    title="Brunilda S.A.S. - Super Motor Unificado v5.0",
+    description="Motor Legal Dr. Julián López con Control de T&C y Bloqueo Automático a las 24hs"
 )
 
 # ---------------------------------------------------------
@@ -52,12 +52,6 @@ def obtener_cliente_gemini():
 # ---------------------------------------------------------
 # MODELOS DE ENTRADA (PYDANTIC)
 # ---------------------------------------------------------
-class EntradaCuidado(BaseModel):
-    texto_o_transcripcion: str
-    modulo: str = "SENIOR"
-    email_tutor: Optional[str] = None
-    device_id: str = "legacy_generic"
-
 class SolicitudContratoLegal(BaseModel):
     case_id: str = Field(default="CASO-GENERAL", description="ID único para aislamiento contextual")
     abogado_nombre: str = Field(default="Abogado Revisor", description="Nombre del profesional")
@@ -65,12 +59,6 @@ class SolicitudContratoLegal(BaseModel):
     datos_partes: Dict[str, Any]
     idioma: str = "Español"
     observaciones_especiales: Optional[str] = None
-
-class SolicitudRevisionContrato(BaseModel):
-    case_id: str = Field(default="CASO-GENERAL", description="ID de caso")
-    contrato_original: str
-    observaciones_abogado: str
-    idioma: str = "Español"
 
 class SolicitudAprobacionElena(BaseModel):
     case_id: str = Field(default="CASO-GENERAL", description="ID de caso único")
@@ -82,24 +70,12 @@ class SolicitudAprobacionElena(BaseModel):
 # ---------------------------------------------------------
 # PROMPTS DEL SISTEMA
 # ---------------------------------------------------------
-PROMPT_DRA_ELENA_CARE = f"""
-Eres la Dra. Elena Lara (IQ 165), Directora Ejecutiva de Protección (CEO) en Brunilda S.A.S.
-Correo Oficial de Emisión: {EMAIL_DRA_ELENA}
-Notificaciones Administrativas a: {EMAIL_ADMIN_JAVIER}
-Libro Maestro de Registro en Google Sheets: {SPREADSHEET_URL}
-
-PERFIL Y PRESENCIA INSTITUCIONAL:
-- Posees una inteligencia superior y un estoicismo radical. Procesas presión y caos sin perder la calma quirúrgica ni el control emocional.
-- Tu estilo comunicacional es preciso, directo, analítico y firme. Transmites jerarquía y autoridad médica.
-"""
-
 PROMPT_JULIAN_LEGAL = f"""
 Eres el Dr. Julián López (IQ 156), Director de Asuntos Legales y Arquitectura Documental en Brunilda S.A.S., bajo la supervisión ejecutiva de la Dra. Elena Lara.
 
 MODO Y MENTALIDAD: MODO FLOW (DOOM ENGINE)
 - Operas a velocidad hiperfocalizada. Tu objetivo es actuar como un "segundo par de ojos ultra-metódico" para abogados y estudios jurídicos argentinos.
 - Detectas proactivamente omisiones, vicios de forma, riesgos patrimoniales, impositivos o procesales en contratos y demandas (bajo CCCN, DNRPA, CPCCN y Ley de Alquileres).
-- Mantiens respuesta clara, concisa, fluida y con agilidad.
 - MEMORIA EIDÉTICA POR CASO: Mantienes aislamiento absoluto por `case_id`.
 
 DIRECTIVAS DE SALIDA JSON OBLIGATORIO:
@@ -153,8 +129,43 @@ def enviar_correo_contrato(destinatario: str, asunto: str, contenido_html: str):
         print(f"⚠️ [ERROR ENVIO MAIL]: {e}")
         return False
 
+def generar_link_mp(plan: str):
+    precios = {
+        "UNICO": {"titulo": "Brunilda S.A.S - Elena Unico", "precio": 6000},
+        "DUO": {"titulo": "Brunilda S.A.S - Elena Duo", "precio": 12000},
+        "SUITE": {"titulo": "Brunilda S.A.S - Elena Premium Suite", "precio": 18000}
+    }
+    plan_info = precios.get(plan.upper(), precios["UNICO"])
+    url = "https://api.mercadopago.com/checkout/preferences"
+    headers = {
+        "Authorization": f"Bearer {TOKEN_MP}",
+        "Content-Type": "application/json"
+    }
+    payload = {
+        "items": [{
+            "title": plan_info["titulo"],
+            "quantity": 1,
+            "unit_price": plan_info["precio"],
+            "currency_id": "ARS"
+        }],
+        "back_urls": {
+            "success": "https://elena-companion-api.onrender.com/pago-exitoso",
+            "failure": "https://elena-companion-api.onrender.com/",
+            "pending": "https://elena-companion-api.onrender.com/"
+        },
+        "auto_return": "approved",
+        "notification_url": "https://elena-companion-api.onrender.com/webhook/mercadopago"
+    }
+    try:
+        res = requests.post(url, headers=headers, json=payload, timeout=5)
+        if res.status_code == 201:
+            return res.json().get("init_point")
+    except Exception as e:
+        print("⚠️ [ERROR MP]:", e)
+    return None
+
 # ---------------------------------------------------------
-# INTERFAZ WEB DE CHAT LEGAL
+# INTERFAZ WEB DE CHAT LEGAL CON T&C Y TIMER DE 24HS
 # ---------------------------------------------------------
 @app.api_route("/", methods=["GET", "HEAD"], response_class=HTMLResponse)
 def home():
@@ -179,15 +190,27 @@ textarea {{ flex: 1; background: #0f172a; border: 1px solid #475569; color: #f8f
 textarea:focus {{ outline: none; border-color: #38bdf8; }}
 button {{ background: #22c55e; color: #000; font-weight: bold; border: none; border-radius: 8px; padding: 0 20px; cursor: pointer; transition: background 0.2s; }}
 button:hover {{ background: #16a34a; color: #fff; }}
+button:disabled {{ background: #475569; color: #94a3b8; cursor: not-allowed; }}
 .case-bar {{ background: #0f172a; padding: 10px 20px; border-bottom: 1px solid #334155; font-size: 0.85em; color: #94a3b8; display: flex; gap: 15px; align-items: center; justify-content: center; }}
 .case-bar input {{ background: #1e293b; border: 1px solid #475569; color: #fff; padding: 4px 8px; border-radius: 4px; font-size: 0.9em; }}
+
+/* MODALES */
+.modal-overlay {{ display: flex; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.88); z-index: 1000; justify-content: center; align-items: center; }}
+.modal-content {{ background: #1e293b; max-width: 750px; width: 90%; max-height: 85vh; padding: 25px; border-radius: 10px; border: 1px solid #475569; display: flex; flex-direction: column; }}
+.modal-body {{ overflow-y: auto; font-size: 0.82em; color: #cbd5e1; margin-bottom: 15px; background: #0f172a; padding: 15px; border-radius: 6px; line-height: 1.6; text-align: justify; }}
+.accept-container {{ display: flex; align-items: center; gap: 10px; margin-bottom: 15px; color: #f8fafc; font-size: 0.9em; }}
+.plans-grid {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 15px; }}
+.plan-card {{ background: #0f172a; border: 1px solid #38bdf8; padding: 15px; border-radius: 8px; text-align: center; }}
+.plan-card h4 {{ margin: 0 0 10px 0; color: #38bdf8; }}
+.plan-price {{ font-size: 1.3em; font-weight: bold; color: #22c55e; margin-bottom: 10px; }}
+.btn-pay-modal {{ background: #22c55e; color: #000; text-decoration: none; padding: 8px 12px; display: block; border-radius: 5px; font-weight: bold; margin-top: 10px; }}
 </style>
 </head>
 <body>
 
 <div class="header">
     <h1>⚖️ BRUNILDA S.A.S. — Módulo Legal (Dr. Julián López)</h1>
-    <span class="header-status">🟢 Modo Flow Activo (24hs Prueba)</span>
+    <span class="header-status" id="timerStatus">🟢 Prueba 24hs Activa</span>
 </div>
 
 <div class="case-bar">
@@ -200,128 +223,19 @@ button:hover {{ background: #16a34a; color: #fff; }}
 <div class="chat-container" id="chat">
     <div class="msg msg-julian">
         👋 <strong>¡Hola! Soy el Dr. Julián López (IQ 156)</strong>, Director de Asuntos Legales de Brunilda S.A.S.<br><br>
-        Estoy listo en <strong>Estado de Flow</strong> para trabajar con vos. Escribime qué escrito procesal, contrato o demanda necesitas redactar o revisar bajo la legislación argentina.
+        Estoy listo en <strong>Estado de Flow</strong> para trabajar con vos. Una vez aceptados los Términos y Condiciones, escribime qué escrito procesal, contrato o demanda necesitas redactar o revisar bajo la legislación argentina.
     </div>
 </div>
 
 <div class="input-panel">
-    <textarea id="promptText" placeholder="Ej: Redactar un contrato de alquiler comercial en CABA por $400.000 ARS..."></textarea>
-    <button onclick="enviarMensaje()">Enviar 🚀</button>
+    <textarea id="promptText" disabled placeholder="Por favor acepta los Términos y Condiciones para habilitar el chat..."></textarea>
+    <button id="btnEnviar" disabled onclick="enviarMensaje()">Enviar 🚀</button>
 </div>
 
-<script>
-async function enviarMensaje() {{
-    const input = document.getElementById('promptText');
-    const text = input.value.trim();
-    if (!text) return;
-
-    const chat = document.getElementById('chat');
-    const caseId = document.getElementById('caseId').value || 'CASO-GENERAL';
-    const abogadoNombre = document.getElementById('abogadoNombre').value || 'Abogado';
-
-    // Mostrar mensaje del usuario
-    const userDiv = document.createElement('div');
-    userDiv.className = 'msg msg-user';
-    userDiv.innerText = text;
-    chat.appendChild(userDiv);
-
-    input.value = '';
-    chat.scrollTop = chat.scrollHeight;
-
-    // Mostrar indicador de pensando
-    const julianDiv = document.createElement('div');
-    julianDiv.className = 'msg msg-julian';
-    julianDiv.innerText = '⚡ Julián está procesando en Modo Flow...';
-    chat.appendChild(julianDiv);
-    chat.scrollTop = chat.scrollHeight;
-
-    try {{
-        const response = await fetch('/legal/redactar-contrato', {{
-            method: 'POST',
-            headers: {{ 'Content-Type': 'application/json' }},
-            body: JSON.stringify({{
-                case_id: caseId,
-                abogado_nombre: abogadoNombre,
-                tipo_contrato: text.substring(0, 50),
-                datos_partes: {{ "instruccion_abogado": text }},
-                idioma: "Español"
-            }})
-        }});
-
-        const data = await response.json();
-        if (data.texto_contrato_borrador) {{
-            julianDiv.innerHTML = `<strong>📄 BORRADOR GENERADO [${{data.case_id}}]:</strong><br><br>` + 
-                `<div style="background:#0f172a; padding:10px; border-radius:5px; font-family:monospace; margin-bottom:10px;">${{data.texto_contrato_borrador}}</div>` +
-                `<strong>⚠️ OBSERVACIONES DE JULIÁN:</strong><br>${{data.observaciones_legales_locales || 'Sin observaciones adicionales.'}}`;
-        }} else {{
-            julianDiv.innerText = "Respuesta recibida: " + JSON.stringify(data);
-        }}
-    }} catch (err) {{
-        julianDiv.innerText = "❌ Hubo un error al comunicarse con Julián: " + err.message;
-    }}
-    chat.scrollTop = chat.scrollHeight;
-}}
-</script>
-
-</body>
-</html>"""
-
-# ---------------------------------------------------------
-# ENDPOINTS OPERATIVOS
-# ---------------------------------------------------------
-@app.post("/legal/redactar-contrato")
-def redactar_contrato_legal(solicitud: SolicitudContratoLegal):
-    c = obtener_cliente_gemini()
-    if not c:
-        raise HTTPException(status_code=500, detail="GEMINI_API_KEY no configurada.")
-    
-    prompt_usuario = (
-        f"[MODE: FLOW STATE / DOOM ENGINE]\n"
-        f"[CASE ID: {solicitud.case_id}]\n"
-        f"Abogado Revisor: {solicitud.abogado_nombre}\n"
-        f"Solicitud: {solicitud.tipo_contrato}\n"
-        f"Detalles de la consulta: {json.dumps(solicitud.datos_partes, ensure_ascii=False)}"
-    )
-    
-    try:
-        response = c.models.generate_content(
-            model='gemini-2.5-flash',
-            contents=prompt_usuario,
-            config=types.GenerateContentConfig(
-                system_instruction=PROMPT_JULIAN_LEGAL,
-                temperature=0.1,
-                response_mime_type="application/json"
-            )
-        )
-        return json.loads(response.text)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error en Julián: {str(e)}")
-
-@app.post("/legal/aprobar-y-enviar")
-def aprobar_y_enviar_contrato(datos: SolicitudAprobacionElena):
-    cuerpo_mail = f"""
-    <html>
-    <body style="font-family: Arial, sans-serif; color: #333;">
-        <div style="background-color: #0f172a; color: #ffffff; padding: 20px;">
-            <h2 style="color: #38bdf8;">BRUNILDA S.A.S. - Certificación Documental</h2>
-            <p>Dra. Elena Lara (CEO) | Dr. Julián López (Director Módulo Legal)</p>
-        </div>
-        <div style="padding: 20px; border: 1px solid #ccc; margin-top: 15px;">
-            <p>Estimado/a <strong>{datos.nombre_abogado}</strong>,</p>
-            <p>Se valida el instrumento jurídico <strong>"{datos.titulo_documento}"</strong> (Case ID: {datos.case_id}).</p>
-            <pre style="background:#f8fafc; padding:15px; border-left:4px solid #22c55e;">{datos.texto_contrato_final}</pre>
-        </div>
-    </body>
-    </html>
-    """
-    
-    exito = enviar_correo_contrato(
-        destinatario=datos.email_abogado_o_cliente,
-        asunto=f"[BRUNILDA S.A.S.] Documento Validado [{datos.case_id}]: {datos.titulo_documento}",
-        contenido_html=cuerpo_mail
-    )
-    
-    if exito:
-        return {"status": "ok", "mensaje": "Mail enviado exitosamente"}
-    else:
-        return {"status": "warning", "mensaje": "No se pudo enviar el correo."}
+<div id="modalTerminos" class="modal-overlay">
+    <div class="modal-content">
+        <h2 style="color:#38bdf8; margin: 0 0 10px 0; font-size:1.3em;">Términos & Condiciones de Uso / Terms & Conditions</h2>
+        <div class="modal-body">
+            <h4>TÉRMINOS Y CONDICIONES DE USO Y POLÍTICA DE PRIVACIDAD — BRUNILDA S.A.S.</h4>
+            <p><strong>1. ACEPTACIÓN DE LOS TÉRMINOS:</strong> Al acceder, registrarse o utilizar los servicios brindados por BRUNILDA S.A.S. (en adelante, "LA EMPRESA"), ya sea a través de los módulos asistenciales ("Elena Care") o del módulo de apoyo documental e inteligencia artificial ("Julián Legal"), el usuario (en adelante, "EL USUARIO") declara haber leído, entendido y aceptado de manera irrestricta la totalidad de las cláusulas contenidas en este documento. Si EL USUARIO no está de acuerdo con estos Términos y Condiciones, deberá abstenerse de utilizar la plataforma.</p>
+            <p><strong>2. NATURALEZA DEL SERVICIO Y EXENCIÓN DE RESPONSABILIDAD LEGAL:</strong> El Módulo "Julián Legal" opera como una herramienta computacional de asistencia en la redacción, procesamiento, auditoría de riesgos y estructuración de borradores documentales, contratos y piezas procesales. El módulo Juli
