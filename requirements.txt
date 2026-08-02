@@ -1,5 +1,6 @@
 fastapi
 uvicorn
-google-genai
-requests
 pydantic
+requests
+google-genai
+gradio==4.44.0
