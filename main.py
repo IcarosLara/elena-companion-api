@@ -17,8 +17,8 @@ from google.genai import types
 # INICIALIZACIÓN PRINCIPAL DE FASTAPI
 # ---------------------------------------------------------
 app = FastAPI(
-    title="Brunilda S.A.S. - Super Motor Unificado v5.0",
-    description="Motor Legal Dr. Julián López con Control de T&C y Bloqueo Automático a las 24hs"
+    title="Brunilda S.A.S. - Super Motor Unificado v5.1",
+    description="Motor Legal Dr. Julián López - Jurisdicción San Miguel de Tucumán"
 )
 
 # ---------------------------------------------------------
@@ -165,7 +165,7 @@ def generar_link_mp(plan: str):
     return None
 
 # ---------------------------------------------------------
-# INTERFAZ WEB DE CHAT LEGAL CON T&C Y TIMER DE 24HS
+# INTERFAZ WEB DE CHAT LEGAL CON JURISDICCIÓN TUCUMÁN
 # ---------------------------------------------------------
 @app.api_route("/", methods=["GET", "HEAD"], response_class=HTMLResponse)
 def home():
@@ -241,7 +241,7 @@ button:disabled {{ background: #475569; color: #94a3b8; cursor: not-allowed; }}
             <p><strong>2. NATURALEZA DEL SERVICIO Y EXENCIÓN DE RESPONSABILIDAD LEGAL:</strong> El Módulo "Julián Legal" opera como una herramienta computacional de asistencia en la redacción, procesamiento, auditoría de riesgos y estructuración de borradores documentales, contratos y piezas procesales. El módulo Julián NO es un abogado, NO imparte asesoramiento legal vinculante ni sustituye la actuación de un profesional del derecho. Todo borrador o escrito generado DEBE ser obligatoriamente auditado, revisado, corregido y firmado por un abogado matriculado antes de ser presentado ante autoridades judiciales o firmado por partes contratantes. LA EMPRESA no asume responsabilidad alguna por daños directos o indirectos derivados del uso inadecuado o la falta de revisión profesional.</p>
             <p><strong>3. PRUEBA GRATUITA DE 24 HORAS Y CONTROL ANTIFRAUDE:</strong> LA EMPRESA otorga un pase de prueba gratuita por el término perentorio e improrrogable de veinticuatro (24) horas consecutivas a contar desde el momento del registro/aceptación inicial. Para acceder a la prueba, el Estudio Jurídico o Abogado solicitante consignará la nómina de profesionales autorizados. Queda prohibida la cesión de credenciales o el registro duplicado con identidades de fantasía. Vencidas las 24 horas, el sistema bloqueará automáticamente la interacción hasta efectivizar la suscripción mensual.</p>
             <p><strong>4. PROTECCIÓN DE DATOS PERSONALES (LEY N° 25.326):</strong> En cumplimiento de la Ley N° 25.326, LA EMPRESA garantiza la confidencialidad de la información. Los datos y documentos procesados en el módulo Julián operan bajo memoria aislada por expediente (Case ID), garantizando que la información no sea accesible ni utilizada para entrenar modelos públicos fuera del entorno asignado.</p>
-            <p><strong>5. JURISDICCIÓN:</strong> Este acuerdo se rige por las leyes de la República Argentina, sometiéndose las partes a la jurisdicción de los Tribunales Ordinarios competentes de Santiago del Estero.</p>
+            <p><strong>5. JURISDICCIÓN Y LEY APLICABLE:</strong> Este acuerdo se rige por las leyes de la República Argentina. Ante cualquier controversia derivada de la interpretación o ejecución de los presentes términos, las partes se someten a la jurisdicción de los <strong>Tribunales Ordinarios competentes de San Miguel de Tucumán</strong>, renunciando a cualquier otro fuero o jurisdicción que pudiera corresponderles.</p>
         </div>
         <div class="accept-container">
             <input type="checkbox" id="checkAcepto" onchange="validarAceptacion()">
@@ -281,8 +281,7 @@ button:disabled {{ background: #475569; color: #94a3b8; cursor: not-allowed; }}
 </div>
 
 <script>
-// CONTROL DE TIEMPO DE 24 HORAS
-const DURACION_PRUEBA_MS = 24 * 60 * 60 * 1000; // 24 horas en milisegundos
+const DURACION_PRUEBA_MS = 24 * 60 * 60 * 1000;
 
 function verificarEstadoPrueba() {{
     const acepto = localStorage.getItem('termAccepted');
@@ -294,10 +293,8 @@ function verificarEstadoPrueba() {{
         const tiempoTranscurrido = Date.now() - parseInt(inicioTimestamp, 10);
         
         if (tiempoTranscurrido >= DURACION_PRUEBA_MS) {{
-            // PRUEBA VENCIDA -> BLOQUEAR Y MOSTRAR SUSCRIPCIÓN
             bloquearChatPorVencimiento();
         }} else {{
-            // PRUEBA ACTIVA -> HABILITAR CHAT
             habilitarChat();
             const horasRestantes = Math.round((DURACION_PRUEBA_MS - tiempoTranscurrido) / (1000 * 60 * 60));
             document.getElementById('timerStatus').innerText = `🟢 Prueba Activa (${{horasRestantes}}h restantes)`;
@@ -324,7 +321,7 @@ function habilitarChat() {{
     const btn = document.getElementById('btnEnviar');
     txt.disabled = false;
     btn.disabled = false;
-    txt.placeholder = "Ej: Redactar un contrato de alquiler comercial en CABA por $400.000 ARS...";
+    txt.placeholder = "Ej: Redactar un contrato de alquiler comercial por $400.000 ARS...";
 }}
 
 function bloquearChatPorVencimiento() {{
@@ -340,7 +337,6 @@ function bloquearChatPorVencimiento() {{
 }}
 
 async function enviarMensaje() {{
-    // Re-verificar vigencia antes de procesar
     const inicioTimestamp = localStorage.getItem('trialStartTimestamp');
     if (inicioTimestamp && (Date.now() - parseInt(inicioTimestamp, 10) >= DURACION_PRUEBA_MS)) {{
         bloquearChatPorVencimiento();
@@ -355,7 +351,6 @@ async function enviarMensaje() {{
     const caseId = document.getElementById('caseId').value || 'CASO-GENERAL';
     const abogadoNombre = document.getElementById('abogadoNombre').value || 'Abogado';
 
-    // Mostrar mensaje del usuario
     const userDiv = document.createElement('div');
     userDiv.className = 'msg msg-user';
     userDiv.innerText = text;
@@ -364,7 +359,6 @@ async function enviarMensaje() {{
     input.value = '';
     chat.scrollTop = chat.scrollHeight;
 
-    // Indicador de pensando
     const julianDiv = document.createElement('div');
     julianDiv.className = 'msg msg-julian';
     julianDiv.innerText = '⚡ Dr. Julián López está procesando en Modo Flow...';
@@ -398,7 +392,6 @@ async function enviarMensaje() {{
     chat.scrollTop = chat.scrollHeight;
 }}
 
-// Verificar estado al cargar la página
 window.onload = verificarEstadoPrueba;
 </script>
 
