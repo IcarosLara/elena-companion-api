@@ -17,6 +17,14 @@ from google import genai
 from google.genai import types
 
 # ---------------------------------------------------------
+# INICIALIZACIÓN PRINCIPAL DE FASTAPI
+# ---------------------------------------------------------
+app = FastAPI(
+    title="Brunilda S.A.S. - Super Motor Unificado v3.6",
+    description="Motor Integral de Inteligencia Asistencial, Perfilación Conductual y Apoyo Legal-Documental"
+)
+
+# ---------------------------------------------------------
 # CONFIGURACIÓN MAESTRA DE ENTORNOS Y CREDENCIALES
 # ---------------------------------------------------------
 SPREADSHEET_ID = "17yjtHd1O5TvwmlTzxdd8t77vWgDb4Z5Y1VR3lAs0Fvw"
@@ -39,23 +47,11 @@ PAYPAL_EMAIL = "javieradrianlaraaracena@gmail.com"
 BTC_WALLET = "bc1qw575hmqvqagny6fu0fkaa5qypq2j6hefqckqslt9624qphxzy7fqxq63jr"
 LINK_MERCADOPAGO_REAL = "https://link.mercadopago.com.ar/brunildasas"
 
-API_KEY = os.environ.get("GEMINI_API_KEY")
-
 def obtener_cliente_gemini():
     key = os.environ.get("GEMINI_API_KEY")
     if key:
         return genai.Client(api_key=key)
     return None
-
-client = obtener_cliente_gemini()
-
-# ---------------------------------------------------------
-# INICIALIZACIÓN DE FASTAPI (SUPER MOTOR)
-# ---------------------------------------------------------
-app = FastAPI(
-    title="Brunilda S.A.S. - Super Motor Unificado v3.6",
-    description="Motor Integral de Inteligencia Asistencial, Perfilación Conductual y Apoyo Legal-Documental"
-)
 
 # ---------------------------------------------------------
 # MODELOS DE ENTRADA (PYDANTIC)
@@ -667,5 +663,5 @@ with gr.Blocks(title="Brunilda S.A.S. - Demostración en Vivo") as demo:
         
         btn_aprobar.click(demo_aprobar_elena, inputs=[tit_final, doc_final, email_abog, nombre_abog], outputs=[resultado_envio])
 
-# MONTAJE DE GRADIO EN FASTAPI
-app = gr.mount_gradio_app(app, demo, path="/demo-live")
+# MONTAJE FINAL DE GRADIO EN FASTAPI
+app = gr.mount_gradio_app(app, demo, path="/demo-live")                
