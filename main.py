@@ -238,4 +238,256 @@ button:disabled {{ background: #475569; color: #94a3b8; cursor: not-allowed; }}
         <div class="modal-body">
             <h4>TÉRMINOS Y CONDICIONES DE USO Y POLÍTICA DE PRIVACIDAD — BRUNILDA S.A.S.</h4>
             <p><strong>1. ACEPTACIÓN DE LOS TÉRMINOS:</strong> Al acceder, registrarse o utilizar los servicios brindados por BRUNILDA S.A.S. (en adelante, "LA EMPRESA"), ya sea a través de los módulos asistenciales ("Elena Care") o del módulo de apoyo documental e inteligencia artificial ("Julián Legal"), el usuario (en adelante, "EL USUARIO") declara haber leído, entendido y aceptado de manera irrestricta la totalidad de las cláusulas contenidas en este documento. Si EL USUARIO no está de acuerdo con estos Términos y Condiciones, deberá abstenerse de utilizar la plataforma.</p>
-            <p><strong>2. NATURALEZA DEL SERVICIO Y EXENCIÓN DE RESPONSABILIDAD LEGAL:</strong> El Módulo "Julián Legal" opera como una herramienta computacional de asistencia en la redacción, procesamiento, auditoría de riesgos y estructuración de borradores documentales, contratos y piezas procesales. El módulo Juli
+            <p><strong>2. NATURALEZA DEL SERVICIO Y EXENCIÓN DE RESPONSABILIDAD LEGAL:</strong> El Módulo "Julián Legal" opera como una herramienta computacional de asistencia en la redacción, procesamiento, auditoría de riesgos y estructuración de borradores documentales, contratos y piezas procesales. El módulo Julián NO es un abogado, NO imparte asesoramiento legal vinculante ni sustituye la actuación de un profesional del derecho. Todo borrador o escrito generado DEBE ser obligatoriamente auditado, revisado, corregido y firmado por un abogado matriculado antes de ser presentado ante autoridades judiciales o firmado por partes contratantes. LA EMPRESA no asume responsabilidad alguna por daños directos o indirectos derivados del uso inadecuado o la falta de revisión profesional.</p>
+            <p><strong>3. PRUEBA GRATUITA DE 24 HORAS Y CONTROL ANTIFRAUDE:</strong> LA EMPRESA otorga un pase de prueba gratuita por el término perentorio e improrrogable de veinticuatro (24) horas consecutivas a contar desde el momento del registro/aceptación inicial. Para acceder a la prueba, el Estudio Jurídico o Abogado solicitante consignará la nómina de profesionales autorizados. Queda prohibida la cesión de credenciales o el registro duplicado con identidades de fantasía. Vencidas las 24 horas, el sistema bloqueará automáticamente la interacción hasta efectivizar la suscripción mensual.</p>
+            <p><strong>4. PROTECCIÓN DE DATOS PERSONALES (LEY N° 25.326):</strong> En cumplimiento de la Ley N° 25.326, LA EMPRESA garantiza la confidencialidad de la información. Los datos y documentos procesados en el módulo Julián operan bajo memoria aislada por expediente (Case ID), garantizando que la información no sea accesible ni utilizada para entrenar modelos públicos fuera del entorno asignado.</p>
+            <p><strong>5. JURISDICCIÓN:</strong> Este acuerdo se rige por las leyes de la República Argentina, sometiéndose las partes a la jurisdicción de los Tribunales Ordinarios competentes de Santiago del Estero.</p>
+        </div>
+        <div class="accept-container">
+            <input type="checkbox" id="checkAcepto" onchange="validarAceptacion()">
+            <label for="checkAcepto">He leído, acepto y me notifico de los Términos y Condiciones del Servicio.</label>
+        </div>
+        <button id="btnAceptarTerminos" disabled onclick="aceptarTerminos()" style="padding:12px; font-size:1em;">Aceptar y Comenzar Prueba de 24hs 🚀</button>
+    </div>
+</div>
+
+<div id="modalSuscripcion" class="modal-overlay" style="display:none;">
+    <div class="modal-content">
+        <h2 style="color:#f59e0b; margin: 0 0 10px 0; font-size:1.3em;">⌛ Su Período de Prueba de 24hs ha Finalizado</h2>
+        <p style="color:#cbd5e1; font-size:0.9em; margin-bottom:15px;">
+            Esperamos que haya comprobado el valor y la velocidad en Estado de Flow del Dr. Julián López. Para continuar utilizando el Módulo Legal y certificar sus documentos, seleccione su plan de suscripción mensual:
+        </p>
+        <div class="plans-grid">
+            <div class="plan-card">
+                <h4>Elena Único</h4>
+                <div class="plan-price">$6.000 ARS/mes</div>
+                <p style="font-size:0.8em; color:#94a3b8;">1 Módulo a elección (Legal o Care)</p>
+                <a href="/pagar/UNICO" class="btn-pay-modal">Suscribirse</a>
+            </div>
+            <div class="plan-card">
+                <h4>Elena Dúo</h4>
+                <div class="plan-price">$12.000 ARS/mes</div>
+                <p style="font-size:0.8em; color:#94a3b8;">2 Módulos Combinados</p>
+                <a href="/pagar/DUO" class="btn-pay-modal">Suscribirse</a>
+            </div>
+            <div class="plan-card" style="border-color:#f59e0b;">
+                <h4 style="color:#f59e0b;">Suite Premium Full</h4>
+                <div class="plan-price" style="color:#f59e0b;">$18.000 ARS/mes</div>
+                <p style="font-size:0.8em; color:#94a3b8;">Acceso Ilimitado (Care + Julián Legal)</p>
+                <a href="/pagar/SUITE" class="btn-pay-modal" style="background:#f59e0b; color:#000;">Suscribirse</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// CONTROL DE TIEMPO DE 24 HORAS
+const DURACION_PRUEBA_MS = 24 * 60 * 60 * 1000; // 24 horas en milisegundos
+
+function verificarEstadoPrueba() {{
+    const acepto = localStorage.getItem('termAccepted');
+    const inicioTimestamp = localStorage.getItem('trialStartTimestamp');
+
+    if (acepto === 'true' && inicioTimestamp) {{
+        document.getElementById('modalTerminos').style.display = 'none';
+        
+        const tiempoTranscurrido = Date.now() - parseInt(inicioTimestamp, 10);
+        
+        if (tiempoTranscurrido >= DURACION_PRUEBA_MS) {{
+            // PRUEBA VENCIDA -> BLOQUEAR Y MOSTRAR SUSCRIPCIÓN
+            bloquearChatPorVencimiento();
+        }} else {{
+            // PRUEBA ACTIVA -> HABILITAR CHAT
+            habilitarChat();
+            const horasRestantes = Math.round((DURACION_PRUEBA_MS - tiempoTranscurrido) / (1000 * 60 * 60));
+            document.getElementById('timerStatus').innerText = `🟢 Prueba Activa (${{horasRestantes}}h restantes)`;
+        }}
+    }}
+}}
+
+function validarAceptacion() {{
+    const check = document.getElementById('checkAcepto');
+    document.getElementById('btnAceptarTerminos').disabled = !check.checked;
+}}
+
+function aceptarTerminos() {{
+    localStorage.setItem('termAccepted', 'true');
+    if (!localStorage.getItem('trialStartTimestamp')) {{
+        localStorage.setItem('trialStartTimestamp', Date.now().toString());
+    }}
+    document.getElementById('modalTerminos').style.display = 'none';
+    habilitarChat();
+}}
+
+function habilitarChat() {{
+    const txt = document.getElementById('promptText');
+    const btn = document.getElementById('btnEnviar');
+    txt.disabled = false;
+    btn.disabled = false;
+    txt.placeholder = "Ej: Redactar un contrato de alquiler comercial en CABA por $400.000 ARS...";
+}}
+
+function bloquearChatPorVencimiento() {{
+    const txt = document.getElementById('promptText');
+    const btn = document.getElementById('btnEnviar');
+    txt.disabled = true;
+    btn.disabled = true;
+    txt.placeholder = "🔒 Su período de prueba de 24hs ha finalizado. Por favor elija un plan de suscripción.";
+    document.getElementById('timerStatus').innerText = "🔴 Prueba Vencida (Suscripción Requerida)";
+    document.getElementById('timerStatus').style.color = "#ef4444";
+    document.getElementById('timerStatus').style.borderColor = "#ef4444";
+    document.getElementById('modalSuscripcion').style.display = 'flex';
+}}
+
+async function enviarMensaje() {{
+    // Re-verificar vigencia antes de procesar
+    const inicioTimestamp = localStorage.getItem('trialStartTimestamp');
+    if (inicioTimestamp && (Date.now() - parseInt(inicioTimestamp, 10) >= DURACION_PRUEBA_MS)) {{
+        bloquearChatPorVencimiento();
+        return;
+    }}
+
+    const input = document.getElementById('promptText');
+    const text = input.value.trim();
+    if (!text) return;
+
+    const chat = document.getElementById('chat');
+    const caseId = document.getElementById('caseId').value || 'CASO-GENERAL';
+    const abogadoNombre = document.getElementById('abogadoNombre').value || 'Abogado';
+
+    // Mostrar mensaje del usuario
+    const userDiv = document.createElement('div');
+    userDiv.className = 'msg msg-user';
+    userDiv.innerText = text;
+    chat.appendChild(userDiv);
+
+    input.value = '';
+    chat.scrollTop = chat.scrollHeight;
+
+    // Indicador de pensando
+    const julianDiv = document.createElement('div');
+    julianDiv.className = 'msg msg-julian';
+    julianDiv.innerText = '⚡ Dr. Julián López está procesando en Modo Flow...';
+    chat.appendChild(julianDiv);
+    chat.scrollTop = chat.scrollHeight;
+
+    try {{
+        const response = await fetch('/legal/redactar-contrato', {{
+            method: 'POST',
+            headers: {{ 'Content-Type': 'application/json' }},
+            body: JSON.stringify({{
+                case_id: caseId,
+                abogado_nombre: abogadoNombre,
+                tipo_contrato: text.substring(0, 50),
+                datos_partes: {{ "instruccion_abogado": text }},
+                idioma: "Español"
+            }})
+        }});
+
+        const data = await response.json();
+        if (data.texto_contrato_borrador) {{
+            julianDiv.innerHTML = `<strong>📄 BORRADOR GENERADO [${{data.case_id}}]:</strong><br><br>` + 
+                `<div style="background:#0f172a; padding:10px; border-radius:5px; font-family:monospace; margin-bottom:10px;">${{data.texto_contrato_borrador}}</div>` +
+                `<strong>⚠️ OBSERVACIONES DEL DR. JULIÁN LÓPEZ:</strong><br>${{data.observaciones_legales_locales || 'Sin observaciones adicionales.'}}`;
+        }} else {{
+            julianDiv.innerText = "Respuesta recibida: " + JSON.stringify(data);
+        }}
+    }} catch (err) {{
+        julianDiv.innerText = "❌ Hubo un error al comunicarse con el módulo legal: " + err.message;
+    }}
+    chat.scrollTop = chat.scrollHeight;
+}}
+
+// Verificar estado al cargar la página
+window.onload = verificarEstadoPrueba;
+</script>
+
+</body>
+</html>"""
+
+# ---------------------------------------------------------
+# ENDPOINTS OPERATIVOS
+# ---------------------------------------------------------
+@app.get("/planes")
+def obtener_planes():
+    return {
+        "empresa": "Brunilda S.A.S.",
+        "directora_servicio": "Dra. Elena Lara (IQ 165)",
+        "director_legal": "Dr. Julián López (IQ 156 - Estado Flow)",
+        "google_sheets_maestro": SPREADSHEET_URL,
+        "planes_ars": [
+            {"plan": "Elena Único", "precio_ars": 6000},
+            {"plan": "Elena Dúo", "precio_ars": 12000},
+            {"plan": "Suite Premium Full", "precio_ars": 18000}
+        ],
+        "planes_usd": {"precio_usd": 5.00, "pasarela": PAYPAL_GLOBAL_LINK}
+    }
+
+@app.get("/pagar/{plan}")
+def pagar_plan(plan: str):
+    link = generar_link_mp(plan)
+    if link:
+        return RedirectResponse(url=link)
+    raise HTTPException(status_code=500, detail="Error al conectar con Mercado Pago")
+
+@app.post("/webhook/mercadopago")
+async def webhook_mercadopago(request: Request):
+    return {"status": "ok"}
+
+# --- ENDPOINT LEGAL ---
+@app.post("/legal/redactar-contrato")
+def redactar_contrato_legal(solicitud: SolicitudContratoLegal):
+    c = obtener_cliente_gemini()
+    if not c:
+        raise HTTPException(status_code=500, detail="GEMINI_API_KEY no configurada.")
+    
+    prompt_usuario = (
+        f"[MODE: FLOW STATE / DOOM ENGINE]\n"
+        f"[CASE ID: {solicitud.case_id}]\n"
+        f"Abogado Revisor: {solicitud.abogado_nombre}\n"
+        f"Solicitud: {solicitud.tipo_contrato}\n"
+        f"Detalles de la consulta: {json.dumps(solicitud.datos_partes, ensure_ascii=False)}"
+    )
+    
+    try:
+        response = c.models.generate_content(
+            model='gemini-2.5-flash',
+            contents=prompt_usuario,
+            config=types.GenerateContentConfig(
+                system_instruction=PROMPT_JULIAN_LEGAL,
+                temperature=0.1,
+                response_mime_type="application/json"
+            )
+        )
+        return json.loads(response.text)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error en Julián: {str(e)}")
+
+@app.post("/legal/aprobar-y-enviar")
+def aprobar_y_enviar_contrato(datos: SolicitudAprobacionElena):
+    cuerpo_mail = f"""
+    <html>
+    <body style="font-family: Arial, sans-serif; color: #333;">
+        <div style="background-color: #0f172a; color: #ffffff; padding: 20px;">
+            <h2 style="color: #38bdf8;">BRUNILDA S.A.S. - Certificación Documental</h2>
+            <p>Dra. Elena Lara (CEO) | Dr. Julián López (Director Módulo Legal)</p>
+        </div>
+        <div style="padding: 20px; border: 1px solid #ccc; margin-top: 15px;">
+            <p>Estimado/a <strong>{datos.nombre_abogado}</strong>,</p>
+            <p>Se valida el instrumento jurídico <strong>"{datos.titulo_documento}"</strong> (Case ID: {datos.case_id}).</p>
+            <pre style="background:#f8fafc; padding:15px; border-left:4px solid #22c55e;">{datos.texto_contrato_final}</pre>
+        </div>
+    </body>
+    </html>
+    """
+    
+    exito = enviar_correo_contrato(
+        destinatario=datos.email_abogado_o_cliente,
+        asunto=f"[BRUNILDA S.A.S.] Documento Validado [{datos.case_id}]: {datos.titulo_documento}",
+        contenido_html=cuerpo_mail
+    )
+    
+    if exito:
+        return {"status": "ok", "mensaje": "Mail enviado exitosamente"}
+    else:
+        return {"status": "warning", "mensaje": "No se pudo enviar el correo."}
