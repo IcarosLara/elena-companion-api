@@ -39,19 +39,15 @@ PAYPAL_EMAIL = "javieradrianlaraaracena@gmail.com"
 BTC_WALLET = "bc1qw575hmqvqagny6fu0fkaa5qypq2j6hefqckqslt9624qphxzy7fqxq63jr"
 LINK_MERCADOPAGO_REAL = "https://link.mercadopago.com.ar/brunildasas"
 
-# AUTENTICACIÓN SEGURA VÍA VARIABLE DE ENTORNO (SIN KEYS HARDCODEADAS)
 API_KEY = os.environ.get("GEMINI_API_KEY")
 
-try:
-    if not API_KEY:
-        print("⚠️ [ALERTA CORE]: GEMINI_API_KEY no encontrada en variables de entorno.")
-        client = None
-    else:
-        client = genai.Client(api_key=API_KEY)
-        print("🔑 [AUTENTICACIÓN]: Enlace seguro establecido con Gemini API.")
-except Exception as e:
-    client = None
-    print(f"⚠️ [ALERTA CORE]: Fallo de inicialización en Gemini API: {e}")
+def obtener_cliente_gemini():
+    key = os.environ.get("GEMINI_API_KEY")
+    if key:
+        return genai.Client(api_key=key)
+    return None
+
+client = obtener_cliente_gemini()
 
 # ---------------------------------------------------------
 # INICIALIZACIÓN DE FASTAPI (SUPER MOTOR)
@@ -78,8 +74,8 @@ class EntradaEvaluaciónDragon(BaseModel):
     nivel: str = "Nivel 1 (Aspirante - 3 Perfilaciones/Mes)"
 
 class SolicitudContratoLegal(BaseModel):
-    tipo_contrato: str  # CUIDADO_ADULTO, COMPRAVENTA_AUTO, DOMINIO_INMUEBLE, SEPARACION_BIENES, TESTAMENTO, CONTRATO_LABORAL
-    datos_partes: dict  # Nombres, DNI, Domicilios, Montos, Detalles
+    tipo_contrato: str
+    datos_partes: dict
     idioma: str = "Español"
     observaciones_especiales: str = None
 
@@ -414,7 +410,8 @@ async def webhook_mercadopago(request: Request):
 # --- ENDPOINT 1: ELENA CARE (ASISTENCIAL) ---
 @app.post("/analizar")
 def analizar_care(datos: EntradaCuidado):
-    if not client:
+    c = obtener_cliente_gemini()
+    if not c:
         raise HTTPException(status_code=500, detail="GEMINI_API_KEY no configurada.")
     
     modulo_key = datos.modulo.upper()
@@ -422,7 +419,7 @@ def analizar_care(datos: EntradaCuidado):
     system_instruction_completo = prompt_modulo + "\n" + PROMPT_DRA_ELENA_CARE
     
     try:
-        response = client.models.generate_content(
+        response = c.models.generate_content(
             model='gemini-2.5-flash',
             contents=datos.texto_o_transcripcion,
             config=types.GenerateContentConfig(
@@ -438,7 +435,8 @@ def analizar_care(datos: EntradaCuidado):
 # --- ENDPOINT 2: JULIÁN (REDACTAR CONTRATO) ---
 @app.post("/legal/redactar-contrato")
 def redactar_contrato_legal(solicitud: SolicitudContratoLegal):
-    if not client:
+    c = obtener_cliente_gemini()
+    if not c:
         raise HTTPException(status_code=500, detail="GEMINI_API_KEY no configurada.")
     
     prompt_usuario = (
@@ -449,7 +447,7 @@ def redactar_contrato_legal(solicitud: SolicitudContratoLegal):
     )
     
     try:
-        response = client.models.generate_content(
+        response = c.models.generate_content(
             model='gemini-2.5-flash',
             contents=prompt_usuario,
             config=types.GenerateContentConfig(
@@ -465,7 +463,8 @@ def redactar_contrato_legal(solicitud: SolicitudContratoLegal):
 # --- ENDPOINT 3: JULIÁN (REVISIÓN Y CORRECCIÓN EN VIVO POR ABOGADO) ---
 @app.post("/legal/revisar-contrato")
 def revisar_contrato_legal(solicitud: SolicitudRevisionContrato):
-    if not client:
+    c = obtener_cliente_gemini()
+    if not c:
         raise HTTPException(status_code=500, detail="GEMINI_API_KEY no configurada.")
     
     prompt_revision = f"""
@@ -485,7 +484,7 @@ def revisar_contrato_legal(solicitud: SolicitudRevisionContrato):
     """
     
     try:
-        response = client.models.generate_content(
+        response = c.models.generate_content(
             model='gemini-2.5-flash',
             contents=prompt_revision,
             config=types.GenerateContentConfig(
@@ -550,7 +549,8 @@ def aprobar_y_enviar_contrato(datos: SolicitudAprobacionElena):
 # --- ENDPOINT 5: DRAGON (EVALUACIÓN DE PERFILACIÓN Y DUELO COGNITIVO) ---
 @app.post("/evaluar-dragon")
 def evaluar_dragon(datos: EntradaEvaluaciónDragon):
-    if not client:
+    c = obtener_cliente_gemini()
+    if not c:
         raise HTTPException(status_code=500, detail="GEMINI_API_KEY no configurada.")
     
     system_instruction_dragon = (
@@ -564,7 +564,7 @@ def evaluar_dragon(datos: EntradaEvaluaciónDragon):
     prompt_eval = f"Dilema: {datos.dilema}\nRespuesta del usuario: {datos.respuesta}"
     
     try:
-        response = client.models.generate_content(
+        response = c.models.generate_content(
             model='gemini-2.5-flash',
             contents=prompt_eval,
             config=types.GenerateContentConfig(
@@ -667,5 +667,5 @@ with gr.Blocks(title="Brunilda S.A.S. - Demostración en Vivo") as demo:
         
         btn_aprobar.click(demo_aprobar_elena, inputs=[tit_final, doc_final, email_abog, nombre_abog], outputs=[resultado_envio])
 
-# MONTAJE DE GRADIO EN FASTAPI (Ruta /demo-live)
+# MONTAJE DE GRADIO EN FASTAPI
 app = gr.mount_gradio_app(app, demo, path="/demo-live")
