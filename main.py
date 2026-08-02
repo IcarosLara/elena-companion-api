@@ -20,21 +20,20 @@ from google.genai import types
 # INICIALIZACIÓN PRINCIPAL DE FASTAPI
 # ---------------------------------------------------------
 app = FastAPI(
-    title="Brunilda S.A.S. - Super Motor Unificado v3.9 (Doom Engine)",
-    description="Motor Integral de Inteligencia Asistencial, Perfilación Conductual y Módulo Legal Julián con Memoria Eidética por Caso"
+    title="Brunilda S.A.S. - Super Motor Unificado v4.0 (Doom & Flow Engine)",
+    description="Motor Integral Asistencial, Perfilación Conductual y Módulo Legal Julián con Memoria Eidética y Estado de Flow"
 )
 
 # ---------------------------------------------------------
 # CONFIGURACIÓN MAESTRA DE ENTORNOS Y CREDENCIALES
 # ---------------------------------------------------------
-SPREADSHEET_ID = "17yjtHd1O5TvwmlTzxdd8t77vWgDb4Z5Y1VR3lAs0Fvw"
-SPREADSHEET_URL = "https://docs.google.com/spreadsheets/d/17yjtHd1O5TvwmlTzxdd8t77vWgDb4Z5Y1VR3lAs0Fvw/edit"
+SPREADSHEET_ID = "1_9a1awPkwQrsLVua8XGH2QJdhbO78EZ12T8OKcxt7To"
+SPREADSHEET_URL = f"https://docs.google.com/spreadsheets/d/{SPREADSHEET_ID}/edit"
 WEB_APP_SHEET_URL = "https://script.google.com/macros/s/AKfycbwts5uDaU8PrmUD0ovExIfR2LblZuB2yKpJT8lM-8L1rJcYDEZIzzj7xU2ukP4-oxlC0w/exec"
 
 EMAIL_DRA_ELENA = "dra.elenalara.forense@gmail.com"
 EMAIL_ADMIN_JAVIER = "javieradrianlaraaracena@gmail.com"
 SMTP_USER_ELENA = "dra.elenalara.forense@gmail.com"
-SMTP_USER_RAFA = "rafael.lara.finanzas@gmail.com"
 SMTP_SERVER = "smtp.gmail.com"
 SMTP_PORT = 587
 
@@ -43,9 +42,6 @@ SMTP_PASS = os.environ.get("SMTP_PASS", SECRET_APP_PASS)
 
 TOKEN_MP = os.environ.get("TOKEN_MP", "APP_USR-738297045866874-070402-5f178e96384dfbf05d797c448c7e97c6-3518229186")
 PAYPAL_GLOBAL_LINK = "https://www.paypal.com/invoice/p/#LGFK9KP2H6A55PQH"
-PAYPAL_EMAIL = "javieradrianlaraaracena@gmail.com"
-BTC_WALLET = "bc1qw575hmqvqagny6fu0fkaa5qypq2j6hefqckqslt9624qphxzy7fqxq63jr"
-LINK_MERCADOPAGO_REAL = "https://link.mercadopago.com.ar/brunildasas"
 
 def obtener_cliente_gemini():
     key = os.environ.get("GEMINI_API_KEY")
@@ -75,7 +71,7 @@ class EntradaEvaluacionDragon(BaseModel):
 class SolicitudContratoLegal(BaseModel):
     case_id: str = Field(default="CASO-GENERAL", description="ID único para aislamiento contextual de Julián (Memoria Eidética)")
     abogado_nombre: str = Field(default="Abogado Revisor", description="Nombre del profesional que supervisa")
-    tipo_contrato: str  # CUIDADO_ADULTO, COMPRAVENTA_AUTO, DOMINIO_INMUEBLE, SEPARACION_BIENES, TESTAMENTO, CONTRATO_LABORAL, DEMANDA_DESALOJO
+    tipo_contrato: str
     datos_partes: Dict[str, Any]
     idioma: str = "Español"
     observaciones_especiales: Optional[str] = None
@@ -94,7 +90,7 @@ class SolicitudAprobacionElena(BaseModel):
     nombre_abogado: str
 
 # ---------------------------------------------------------
-# PROMPTS DEL SISTEMA (ELENA LARA & JULIÁN)
+# PROMPTS DEL SISTEMA (ELENA LARA & JULIÁN EN ESTADO DE FLOW)
 # ---------------------------------------------------------
 PROMPT_DRA_ELENA_CARE = f"""
 Eres la Dra. Elena Lara (IQ 165), Directora Ejecutiva de Protección (CEO) en Brunilda S.A.S.
@@ -105,34 +101,25 @@ Libro Maestro de Registro en Google Sheets: {SPREADSHEET_URL}
 PERFIL Y PRESENCIA INSTITUCIONAL:
 - Posees una inteligencia superior y un estoicismo radical. Procesas presión y caos sin perder la calma quirúrgica ni el control emocional.
 - Tu estilo comunicacional es preciso, directo, analítico y firme. Transmites jerarquía y autoridad médica.
-
-SUPERVISIÓN AUTOMATIZADA Y ALERTAS PROACTIVAS:
-1. Supervisas el Libro Maestro en Google Sheets donde las familias cargan horarios, medicamentos y novedades.
-2. Analizas inconsistencias, demoras o alertas (ej. dosis no confirmadas, internaciones imprevistas o cambios de turnos).
-3. Si detectas un incumplimiento en la toma de medicamentos o un evento no agendado, generas mensajes de contención y verificación proactiva.
-4. Generas reportes en JSON estructurado notificando al tutor e integrando con Google Calendar cuando corresponda.
 """
 
 PROMPT_JULIAN_LEGAL = f"""
-Eres Julián (IQ 156), Director de Asuntos Legales y Arquitectura Documental en Brunilda S.A.S., bajo la supervisión ejecutiva de la Dra. Elena Lara.
+Eres el Dr. Julián López (IQ 156), Director de Asuntos Legales y Arquitectura Documental en Brunilda S.A.S., bajo la supervisión ejecutiva de la Dra. Elena Lara.
 
-TU MISIÓN Y MENTALIDAD TÉCNICA:
-Eres un asistente adaptativo de redacción, análisis y auditoría documental para abogados bajo la LEGISLACIÓN ARGENTINA (Código Civil y Comercial de la Nación - CCCN, normativas del DNRPA, Ley de Alquileres, Código Procesal Civil y Comercial y normativa notarial).
+MODO Y MENTALIDAD: ESTADO DE FLOW (DOOM ENGINE)
+- Operas a velocidad hiperfocalizada. Tu objetivo no es solo escribir borradores, sino actuar como un "segundo par de ojos ultra-metódico" para abogados y estudios jurídicos argentinos.
+- Detectas proactivamente omisiones, vicios de forma, riesgos patrimoniales, impositivos o procesales en contratos y demandas (bajo CCCN, DNRPA, CPCCN y Ley de Alquileres).
+- MEMORIA EIDÉTICA POR CASO: Mantienes aislamiento absoluto por `case_id`. Jamás mezclas datos entre expedientes distintos.
 
-MEMORIA EIDÉTICA Y AISLAMIENTO DE CASOS:
-- Operas con estricto aislamiento contextual por `case_id`. JAMÁS mezclas las partes, hechos, montos ni pretensiones de un caso con otro.
-- Actúas como un "segundo par de ojos analítico". No te limitas a transcribir: analizas la situación patrimonial o procesal e identificas activamente omisiones, riesgos no vistos por el profesional o cláusulas de protección patrimonial.
-
-DIRECTIVAS DE REDACCIÓN Y ANÁLISIS:
-1. ADVERTENCIA PROFESIONAL OBLIGATORIA: Todo documento emitido debe incluir de forma visible la siguiente leyenda institucional:
+DIRECTIVAS DE SALIDA JSON OBLIGATORIO:
+1. Incluir la leyenda legal obligatoria al pie del borrador:
    "DOCUMENTO PREPARADO COMO BORRADOR DE TRABAJO TÉCNICO POR EL MÓDULO LEGAL DE BRUNILDA S.A.S. SU VALIDEZ Y EJECUCIÓN DEFINITIVA REQUIERE LA REVISIÓN Y FIRMA DE UN ABOGADO O PROCURADOR HABILITADO."
-2. FORMATO COMPATIBLE CON GOOGLE DOCS / WORD: El borrador debe estructurarse claramente en cláusulas/artículos editables.
-3. FORMATO DE SALIDA JSON OBLIGATORIO:
-   - "case_id": ID del caso procesado.
-   - "titulo_documento": Nombre formal del instrumento o pieza procesal.
-   - "resumen_ejecutivo": Puntos clave del acuerdo o pretensión.
-   - "texto_contrato_borrador": Cuerpo completo del contrato/demanda clausulado y listo para edición.
-   - "observaciones_legales_locales": Puntos críticos, riesgos detectados u oportunidades jurídicas que el abogado humano debe verificar.
+2. Estructura JSON:
+   - "case_id": ID del expediente.
+   - "titulo_documento": Nombre formal.
+   - "resumen_ejecutivo": Puntos clave.
+   - "texto_contrato_borrador": Texto del documento clausulado listo para editar.
+   - "observaciones_legales_locales": Puntos críticos y alertas detectadas por Julián en Estado de Flow.
 """
 
 PROMPTS_ESPECIALIZADOS_CARE = {
@@ -144,7 +131,7 @@ PROMPTS_ESPECIALIZADOS_CARE = {
 }
 
 # ---------------------------------------------------------
-# FUNCIONES AUXILIARES (PAGOS, SHEETS Y CORREOS)
+# FUNCIONES AUXILIARES
 # ---------------------------------------------------------
 def generar_link_mp(plan: str):
     precios = {
@@ -219,7 +206,7 @@ def enviar_correo_contrato(destinatario: str, asunto: str, contenido_html: str):
         return False
 
 # ---------------------------------------------------------
-# LANDING PAGE COMERCIAL Y BILINGÜE
+# LANDING PAGE CON TÉRMINOS EXTESTOS ("EL CHORIZO LEGAL")
 # ---------------------------------------------------------
 @app.api_route("/", methods=["GET", "HEAD"], response_class=HTMLResponse)
 def home():
@@ -249,9 +236,11 @@ h1 {{ color: #38bdf8; margin: 0; font-size: 2.2em; }}
 .price {{ font-size: 1.5em; color: #38bdf8; font-weight: bold; margin: 10px 0; }}
 .btn-pay {{ display: inline-block; background: #22c55e; color: #000; padding: 12px 15px; border-radius: 6px; text-decoration: none; font-weight: bold; border: none; cursor: pointer; font-size: 1em; width: 100%; }}
 .btn-pay:hover {{ background: #16a34a; color: #fff; }}
+.btn-demo {{ background: #f59e0b; color: #000; display: block; text-align: center; padding: 12px; border-radius: 6px; font-weight: bold; text-decoration: none; margin-bottom: 20px; }}
+.btn-demo:hover {{ background: #d97706; color: #fff; }}
 .modal-overlay {{ display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.85); z-index: 1000; justify-content: center; align-items: center; }}
 .modal-content {{ background: #1e293b; max-width: 750px; width: 90%; max-height: 85vh; padding: 25px; border-radius: 10px; border: 1px solid #475569; display: flex; flex-direction: column; }}
-.modal-body {{ overflow-y: auto; font-size: 0.85em; color: #cbd5e1; margin-bottom: 15px; background: #0f172a; padding: 15px; border-radius: 6px; }}
+.modal-body {{ overflow-y: auto; font-size: 0.82em; color: #cbd5e1; margin-bottom: 15px; background: #0f172a; padding: 15px; border-radius: 6px; line-height: 1.5; text-align: justify; }}
 .accept-container {{ display: flex; align-items: center; gap: 10px; margin-bottom: 15px; color: #f8fafc; }}
 .modal-actions {{ display: flex; gap: 10px; }}
 .btn-cancel {{ background: #64748b; color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; width: 30%; font-weight: bold; }}
@@ -268,9 +257,11 @@ h1 {{ color: #38bdf8; margin: 0; font-size: 2.2em; }}
 </div>
 <p class="subtitle">Plataforma Unificada: Asistencia Elena Care & Módulo Legal Julián</p>
 
+<a href="/docs" class="btn-demo">🎁 PROBAR JULIÁN LEGAL GRATIS POR 24 HORAS (PASE ESTUDIOS JURÍDICOS)</a>
+
 <div class="info-banner">
     <h3>📋 Gestión Automatizada / Integrated System</h3>
-    <p><strong>ESP:</strong> Sistema integrado de seguimiento médico de la <strong>Dra. Elena Lara</strong> y apoyo documental con <strong>Julián (IQ 156)</strong>.<br>
+    <p><strong>ESP:</strong> Sistema integrado de seguimiento médico de la <strong>Dra. Elena Lara</strong> y apoyo documental automatizado con <strong>Julián (IQ 156)</strong>.<br>
     <strong>ENG:</strong> Integrated tracking system supervised by <strong>Dr. Elena Lara</strong> and legal drafting assistance by <strong>Julián</strong>.</p>
 </div>
 
@@ -281,7 +272,7 @@ h1 {{ color: #38bdf8; margin: 0; font-size: 2.2em; }}
         <p>Monitoreo asistencial, contención pasiva y seguimiento estricto de agenda médica.</p>
     </div>
     <div class="module-card" style="border-left-color: #f59e0b;">
-        <h4>⚖️ Julián Legal (Apoyo Documental / IQ 156)</h4>
+        <h4>⚖️ Julián Legal (Apoyo Documental / IQ 156 - Estado Flow)</h4>
         <p>Redacción, auditoría de riesgos y borradores de contratos/demandas con memoria de caso aislada.</p>
     </div>
 </div>
@@ -319,18 +310,22 @@ h1 {{ color: #38bdf8; margin: 0; font-size: 2.2em; }}
 
 <div id="modalTerminos" class="modal-overlay">
     <div class="modal-content">
-        <h2 style="color:#38bdf8; margin: 0 0 10px 0; font-size:1.3em;">Términos & Condiciones / Terms & Conditions</h2>
+        <h2 style="color:#38bdf8; margin: 0 0 10px 0; font-size:1.3em;">Términos & Condiciones de Uso / Terms & Conditions</h2>
         <div class="modal-body">
-            <h3>ESP: Términos del Servicio y Privacidad</h3>
-            <p>Al contratar los servicios de Brunilda S.A.S., el usuario acepta la gestión asistencial y documental bajo Ley 25.326 y normativas aplicables. Los borradores legales emitidos por el módulo Julián requieren revisión profesional final por abogado matriculado.</p>
+            <h4>TÉRMINOS Y CONDICIONES DE USO Y POLÍTICA DE PRIVACIDAD — BRUNILDA S.A.S.</h4>
+            <p><strong>1. ACEPTACIÓN DE LOS TÉRMINOS:</strong> Al acceder, registrarse o utilizar los servicios brindados por BRUNILDA S.A.S., ya sea a través de los módulos asistenciales ("Elena Care") o del módulo de apoyo documental ("Julián Legal"), el usuario declara haber leído, entendido y aceptado de manera irrestricta la totalidad de las cláusulas contenidas en este documento.</p>
+            <p><strong>2. NATURALEZA DEL SERVICIO Y EXENCIÓN DE RESPONSABILIDAD:</strong> El Módulo "Julián Legal" opera estrictamente como una herramienta computacional de asistencia en la redacción, procesamiento y auditoría de borradores documentales. El módulo Julián NO es un abogado, NO imparte asesoramiento legal vinculante ni sustituye la actuación de un profesional del derecho. Todo borrador o escrito generado DEBE ser obligatoriamente auditado, revisado y firmado por un abogado matriculado antes de ser presentado ante autoridades judiciales o firmado por partes contratantes.</p>
+            <p><strong>3. PRUEBA GRATUITA DE 24 HORAS Y CONTROL ANTIFRAUDE:</strong> LA EMPRESA otorga un pase de prueba gratuita por veinticuatro (24) horas consecutivas a contar desde el registro inicial del Estudio Jurídico. Para acceder, el solicitante consignará la nómina de profesionales autorizados. Queda prohibida la cesión de credenciales a terceros. Vencidas las 24 horas, el acceso se suspenderá hasta efectivizar el abono del plan seleccionado.</p>
+            <p><strong>4. PROTECCIÓN DE DATOS PERSONALES (LEY N° 25.326):</strong> Se garantiza la confidencialidad de la información suministrada. Los datos y documentos cargados en el módulo Julián son procesados bajo entornos aislados por expediente (Case ID), garantizando que la información no sea accesible ni utilizada fuera del entorno asignado al usuario.</p>
+            <p><strong>5. JURISDICCIÓN:</strong> Este acuerdo se rige por las leyes de la República Argentina, sometiéndose las partes a la jurisdicción de los Tribunales Ordinarios de Santiago del Estero.</p>
         </div>
         <div class="accept-container">
             <input type="checkbox" id="checkAcepto" onchange="validarAceptacion()">
-            <label for="checkAcepto">Acepto los Términos y Condiciones. / I agree to the Terms & Conditions.</label>
+            <label for="checkAcepto">He leído y acepto los Términos y Condiciones. / I agree to the Terms & Conditions.</label>
         </div>
         <div class="modal-actions">
-            <button onclick="cerrarTerminos()" class="btn-cancel">Cancelar / Cancel</button>
-            <button id="btnIrAPagar" disabled onclick="procederAlPago()" class="btn-confirm">Aceptar e Ir a Pagar / Agree & Proceed</button>
+            <button onclick="cerrarTerminos()" class="btn-cancel">Cancelar</button>
+            <button id="btnIrAPagar" disabled onclick="procederAlPago()" class="btn-confirm">Aceptar e Ir a Pagar</button>
         </div>
     </div>
 </div>
@@ -356,38 +351,15 @@ function procederAlPago() {{
 </body>
 </html>"""
 
-@app.get("/pago-exitoso", response_class=HTMLResponse)
-def pago_exitoso():
-    return f"""<!DOCTYPE html>
-<html lang="es">
-<head>
-<meta charset="UTF-8">
-<title>Pago Aprobado / Payment Approved</title>
-<style>
-body {{ font-family: 'Segoe UI', sans-serif; background: #0f172a; color: #f8fafc; padding: 40px; text-align: center; }}
-.card {{ max-width: 650px; margin: 0 auto; background: #1e293b; padding: 40px; border-radius: 12px; border-left: 6px solid #22c55e; }}
-h1 {{ color: #22c55e; }}
-.btn-sheet {{ display: inline-block; background: #22c55e; color: #000; font-weight: bold; padding: 15px 30px; border-radius: 8px; text-decoration: none; margin-top: 20px; }}
-</style>
-</head>
-<body>
-<div class="card">
-    <h1>🎉 ¡Suscripción Confirmada!</h1>
-    <p>La Dra. Elena Lara ha activado tu cuenta en Brunilda S.A.S.</p>
-    <a href="{SPREADSHEET_URL}" target="_blank" class="btn-sheet">📊 ABRIR PLANILLA MAESTRA</a>
-</div>
-</body>
-</html>"""
-
 # ---------------------------------------------------------
-# ENDPOINTS OPERATIVOS DEL SUPER MOTOR
+# ENDPOINTS OPERATIVOS
 # ---------------------------------------------------------
 @app.get("/planes")
 def obtener_planes():
     return {
         "empresa": "Brunilda S.A.S.",
         "directora_servicio": "Dra. Elena Lara (IQ 165)",
-        "director_legal": "Julián (IQ 156)",
+        "director_legal": "Julián López (IQ 156 - Estado Flow)",
         "google_sheets_maestro": SPREADSHEET_URL,
         "planes_ars": [
             {"plan": "Elena Único", "precio_ars": 6000},
@@ -408,7 +380,7 @@ def pagar_plan(plan: str):
 async def webhook_mercadopago(request: Request):
     return {"status": "ok"}
 
-# --- ENDPOINT 1: ELENA CARE (ASISTENCIAL) ---
+# --- ENDPOINT 1: ELENA CARE ---
 @app.post("/analizar")
 def analizar_care(datos: EntradaCuidado):
     c = obtener_cliente_gemini()
@@ -433,7 +405,7 @@ def analizar_care(datos: EntradaCuidado):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error en motor care: {str(e)}")
 
-# --- ENDPOINT 2: JULIÁN (REDACTAR CONTRATO O PIEZA LEGAL CON MEMORIA EIDÉTICA POR CASO) ---
+# --- ENDPOINT 2: JULIÁN (REDACTAR CONTRATO/DEMANDA EN ESTADO DE FLOW) ---
 @app.post("/legal/redactar-contrato")
 def redactar_contrato_legal(solicitud: SolicitudContratoLegal):
     c = obtener_cliente_gemini()
@@ -441,12 +413,13 @@ def redactar_contrato_legal(solicitud: SolicitudContratoLegal):
         raise HTTPException(status_code=500, detail="GEMINI_API_KEY no configurada en servidor.")
     
     prompt_usuario = (
+        f"[MODE: FLOW STATE / DOOM ENGINE]\n"
         f"[CASE ID: {solicitud.case_id}]\n"
         f"Abogado Revisor: {solicitud.abogado_nombre}\n"
         f"Solicitud / Instrumento: {solicitud.tipo_contrato}\n"
         f"Idioma objetivo: {solicitud.idioma}\n"
         f"Datos de las partes y objeto: {json.dumps(solicitud.datos_partes, ensure_ascii=False)}\n"
-        f"Observaciones especiales / Estrategia buscada: {solicitud.observaciones_especiales or 'Análisis de protección estándar'}"
+        f"Observaciones especiales / Estrategia: {solicitud.observaciones_especiales or 'Análisis de protección estándar'}"
     )
     
     try:
@@ -463,7 +436,7 @@ def redactar_contrato_legal(solicitud: SolicitudContratoLegal):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error en módulo legal Julián: {str(e)}")
 
-# --- ENDPOINT 3: JULIÁN (REVISIÓN Y CORRECCIÓN EN VIVO CON EL ABOGADO) ---
+# --- ENDPOINT 3: JULIÁN (REVISIÓN EN VIVO) ---
 @app.post("/legal/revisar-contrato")
 def revisar_contrato_legal(solicitud: SolicitudRevisionContrato):
     c = obtener_cliente_gemini()
@@ -471,18 +444,18 @@ def revisar_contrato_legal(solicitud: SolicitudRevisionContrato):
         raise HTTPException(status_code=500, detail="GEMINI_API_KEY no configurada en servidor.")
     
     prompt_revision = f"""
+    [MODE: FLOW STATE]
     [CASE ID: {solicitud.case_id}]
     
-    CONTRATO O PIEZA ORIGINAL:
+    DOCUMENTO ORIGINAL:
     {solicitud.contrato_original}
 
-    OBSERVACIONES, MODIFICACIONES O CORRECCIONES DEL ABOGADO HUMANO EN VIVO:
+    CORRECCIONES DEL ABOGADO HUMANO EN VIVO:
     {solicitud.observaciones_abogado}
 
     INSTRUCCIÓN:
-    Asimila las correcciones indicadas por el abogado humano manteniendo el rigor técnico bajo la legislación argentina.
-    Asegúrate de actualizar el documento sin alterar el aislamiento del caso.
-    Devuelve la respuesta en formato JSON estructurado con las mismas claves:
+    Asimila las correcciones indicadas por el abogado manteniendo el rigor técnico bajo la legislación argentina.
+    Devuelve la respuesta en formato JSON estructurado:
     - "case_id"
     - "titulo_documento"
     - "resumen_ejecutivo"
@@ -504,7 +477,7 @@ def revisar_contrato_legal(solicitud: SolicitudRevisionContrato):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error en revisión de Julián: {str(e)}")
 
-# --- ENDPOINT 4: APROBACIÓN FINAL DRA. ELENA LARA Y ENVÍO DE MAIL OFICIAL ---
+# --- ENDPOINT 4: CERTIFICACIÓN DRA. ELENA LARA ---
 @app.post("/legal/aprobar-y-enviar")
 def aprobar_y_enviar_contrato(datos: SolicitudAprobacionElena):
     cuerpo_mail = f"""
@@ -516,7 +489,7 @@ def aprobar_y_enviar_contrato(datos: SolicitudAprobacionElena):
         </div>
         <div style="padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px; margin-top: 15px;">
             <p>Estimado/a <strong>{datos.nombre_abogado}</strong>,</p>
-            <p>Se confirma la validación y registro del instrumento jurídico <strong>"{datos.titulo_documento}"</strong> (Case ID: {datos.case_id}) procesado por el módulo legal de Julián (IQ 156) y supervisado por esta Dirección.</p>
+            <p>Se confirma la validación y registro del instrumento jurídico <strong>"{datos.titulo_documento}"</strong> (Case ID: {datos.case_id}) procesado por el módulo legal de Dr. Julián López (IQ 156 - Estado Flow) y supervisado por esta Dirección.</p>
             
             <hr style="border: 0; border-top: 1px solid #ccc; margin: 20px 0;">
             
@@ -526,7 +499,8 @@ def aprobar_y_enviar_contrato(datos: SolicitudAprobacionElena):
             </div>
 
             <p style="font-size: 0.85em; color: #64748b; margin-top: 20px;">
-                * Documento registrado formalmente en el Libro Maestro de Brunilda S.A.S. (Pendiente de timestamping en red Polygon).*
+                * Documento registrado formalmente en el Libro Maestro de Brunilda S.A.S. en Google Sheets:*<br>
+                <a href="{SPREADSHEET_URL}">{SPREADSHEET_URL}</a>
             </p>
         </div>
     </body>
@@ -553,7 +527,7 @@ def aprobar_y_enviar_contrato(datos: SolicitudAprobacionElena):
     else:
         return {"status": "warning", "mensaje": "Contrato procesado pero hubo un inconveniente con el servidor de correo."}
 
-# --- ENDPOINT 5: DRAGON (EVALUACIÓN DE PERFILACIÓN Y DUELO COGNITIVO) ---
+# --- ENDPOINT 5: DRAGON ---
 @app.post("/evaluar-dragon")
 def evaluar_dragon(datos: EntradaEvaluacionDragon):
     c = obtener_cliente_gemini()
