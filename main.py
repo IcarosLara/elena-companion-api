@@ -11,8 +11,8 @@ from email.mime.multipart import MIMEMultipart
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
-from pydantic import BaseModel
-import gradio as gr
+from pydantic import BaseModel, Field
+from typing import Dict, Any, Optional
 from google import genai
 from google.genai import types
 
@@ -20,8 +20,8 @@ from google.genai import types
 # INICIALIZACIÓN PRINCIPAL DE FASTAPI
 # ---------------------------------------------------------
 app = FastAPI(
-    title="Brunilda S.A.S. - Super Motor Unificado v3.6",
-    description="Motor Integral de Inteligencia Asistencial, Perfilación Conductual y Apoyo Legal-Documental"
+    title="Brunilda S.A.S. - Super Motor Unificado v3.9 (Doom Engine)",
+    description="Motor Integral de Inteligencia Asistencial, Perfilación Conductual y Módulo Legal Julián con Memoria Eidética por Caso"
 )
 
 # ---------------------------------------------------------
@@ -50,7 +50,10 @@ LINK_MERCADOPAGO_REAL = "https://link.mercadopago.com.ar/brunildasas"
 def obtener_cliente_gemini():
     key = os.environ.get("GEMINI_API_KEY")
     if key:
-        return genai.Client(api_key=key)
+        try:
+            return genai.Client(api_key=key)
+        except Exception as e:
+            print(f"⚠️ [ALERTA CORE] Error al crear cliente Gemini: {e}")
     return None
 
 # ---------------------------------------------------------
@@ -59,10 +62,10 @@ def obtener_cliente_gemini():
 class EntradaCuidado(BaseModel):
     texto_o_transcripcion: str
     modulo: str = "SENIOR"
-    email_tutor: str = None
+    email_tutor: Optional[str] = None
     device_id: str = "legacy_generic"
 
-class EntradaEvaluaciónDragon(BaseModel):
+class EntradaEvaluacionDragon(BaseModel):
     idioma: str = "Español"
     respuesta: str
     dilema: str
@@ -70,17 +73,21 @@ class EntradaEvaluaciónDragon(BaseModel):
     nivel: str = "Nivel 1 (Aspirante - 3 Perfilaciones/Mes)"
 
 class SolicitudContratoLegal(BaseModel):
-    tipo_contrato: str
-    datos_partes: dict
+    case_id: str = Field(default="CASO-GENERAL", description="ID único para aislamiento contextual de Julián (Memoria Eidética)")
+    abogado_nombre: str = Field(default="Abogado Revisor", description="Nombre del profesional que supervisa")
+    tipo_contrato: str  # CUIDADO_ADULTO, COMPRAVENTA_AUTO, DOMINIO_INMUEBLE, SEPARACION_BIENES, TESTAMENTO, CONTRATO_LABORAL, DEMANDA_DESALOJO
+    datos_partes: Dict[str, Any]
     idioma: str = "Español"
-    observaciones_especiales: str = None
+    observaciones_especiales: Optional[str] = None
 
 class SolicitudRevisionContrato(BaseModel):
+    case_id: str = Field(default="CASO-GENERAL", description="ID de caso para mantener aislamiento de contexto")
     contrato_original: str
     observaciones_abogado: str
     idioma: str = "Español"
 
 class SolicitudAprobacionElena(BaseModel):
+    case_id: str = Field(default="CASO-GENERAL", description="ID de caso único")
     titulo_documento: str
     texto_contrato_final: str
     email_abogado_o_cliente: str
@@ -107,27 +114,25 @@ SUPERVISIÓN AUTOMATIZADA Y ALERTAS PROACTIVAS:
 """
 
 PROMPT_JULIAN_LEGAL = f"""
-Eres Julián, Director de Asuntos Legales y Arquitectura Documental en Brunilda S.A.S., trabajando bajo la supervisión ejecutiva de la Dra. Elena Lara.
+Eres Julián (IQ 156), Director de Asuntos Legales y Arquitectura Documental en Brunilda S.A.S., bajo la supervisión ejecutiva de la Dra. Elena Lara.
 
-TU MISIÓN:
-Actuar como un asistente técnico de redacción y auditoría de documentos legales, contratos y acuerdos privados bajo el marco estrictamente vigente de la LEGISLACIÓN ARGENTINA (Código Civil y Comercial de la Nación - CCCN, normativas del DNRPA, Ley de Alquileres y normativa notarial aplicable).
+TU MISIÓN Y MENTALIDAD TÉCNICA:
+Eres un asistente adaptativo de redacción, análisis y auditoría documental para abogados bajo la LEGISLACIÓN ARGENTINA (Código Civil y Comercial de la Nación - CCCN, normativas del DNRPA, Ley de Alquileres, Código Procesal Civil y Comercial y normativa notarial).
+
+MEMORIA EIDÉTICA Y AISLAMIENTO DE CASOS:
+- Operas con estricto aislamiento contextual por `case_id`. JAMÁS mezclas las partes, hechos, montos ni pretensiones de un caso con otro.
+- Actúas como un "segundo par de ojos analítico". No te limitas a transcribir: analizas la situación patrimonial o procesal e identificas activamente omisiones, riesgos no vistos por el profesional o cláusulas de protección patrimonial.
 
 DIRECTIVAS DE REDACCIÓN Y ANÁLISIS:
-1. ESTRUCTURA RIGUROSA: Redactas instrumentos claros, con cláusulas de delimitación de responsabilidad, causales de rescisión, jurisdicción aplicable (Tribunales Ordinarios de la República Argentina) y mecanismos de resolución de controversias.
-2. ADVERTENCIA PROFESIONAL OBLIGATORIA: Todo documento emitido debe incluir de forma visible la siguiente leyenda institucional:
+1. ADVERTENCIA PROFESIONAL OBLIGATORIA: Todo documento emitido debe incluir de forma visible la siguiente leyenda institucional:
    "DOCUMENTO PREPARADO COMO BORRADOR DE TRABAJO TÉCNICO POR EL MÓDULO LEGAL DE BRUNILDA S.A.S. SU VALIDEZ Y EJECUCIÓN DEFINITIVA REQUIERE LA REVISIÓN Y FIRMA DE UN ABOGADO O PROCURADOR HABILITADO."
-3. ÁREAS DE ESPECIALIZACIÓN ARGENTINA:
-   - Contratos de Prestación de Servicios de Cuidado (Elena Care) con T&C adaptados.
-   - Boletos de Compraventa de Automotores / Motovehículos (Trámites vinculados al Formulario 08 DNRPA).
-   - Contratos de Locación y Cesión de Derechos sobre Inmuebles / Casas / Departamentos.
-   - Convenciones Matrimoniales (Régimen de Separación de Bienes previo al matrimonio - Art. 505 CCCN).
-   - Borradores de Planificación Sucesoria y Testamentos por Acto Público (Art. 2479 CCCN).
-   - Contratos de Trabajo y Locación de Servicios.
-4. FORMATO DE SALIDA: Generas la respuesta en JSON estructurado conteniendo:
-   - "titulo_documento": Nombre formal del instrumento.
-   - "resumen_ejecutivo": Puntos clave del acuerdo.
-   - "texto_contrato_borrador": Cuerpo completo del contrato clausulado.
-   - "observaciones_legales_locales": Puntos críticos para que el abogado o procurador humano revise antes de la firma.
+2. FORMATO COMPATIBLE CON GOOGLE DOCS / WORD: El borrador debe estructurarse claramente en cláusulas/artículos editables.
+3. FORMATO DE SALIDA JSON OBLIGATORIO:
+   - "case_id": ID del caso procesado.
+   - "titulo_documento": Nombre formal del instrumento o pieza procesal.
+   - "resumen_ejecutivo": Puntos clave del acuerdo o pretensión.
+   - "texto_contrato_borrador": Cuerpo completo del contrato/demanda clausulado y listo para edición.
+   - "observaciones_legales_locales": Puntos críticos, riesgos detectados u oportunidades jurídicas que el abogado humano debe verificar.
 """
 
 PROMPTS_ESPECIALIZADOS_CARE = {
@@ -216,7 +221,7 @@ def enviar_correo_contrato(destinatario: str, asunto: str, contenido_html: str):
 # ---------------------------------------------------------
 # LANDING PAGE COMERCIAL Y BILINGÜE
 # ---------------------------------------------------------
-@app.get("/", response_class=HTMLResponse)
+@app.api_route("/", methods=["GET", "HEAD"], response_class=HTMLResponse)
 def home():
     return f"""<!DOCTYPE html>
 <html lang="es">
@@ -259,13 +264,13 @@ h1 {{ color: #38bdf8; margin: 0; font-size: 2.2em; }}
 <div class="container">
 <div class="header-top">
     <h1>BRUNILDA S.A.S.</h1>
-    <a href="/demo-live" target="_blank" class="easter-btn">⚖️ DEMO EN VIVO</a>
+    <a href="/docs" target="_blank" class="easter-btn">🕹️ DEV CONSOLE / DOCS</a>
 </div>
 <p class="subtitle">Plataforma Unificada: Asistencia Elena Care & Módulo Legal Julián</p>
 
 <div class="info-banner">
     <h3>📋 Gestión Automatizada / Integrated System</h3>
-    <p><strong>ESP:</strong> Sistema integrado de seguimiento médico de la <strong>Dra. Elena Lara</strong> y apoyo documental con <strong>Julián</strong>.<br>
+    <p><strong>ESP:</strong> Sistema integrado de seguimiento médico de la <strong>Dra. Elena Lara</strong> y apoyo documental con <strong>Julián (IQ 156)</strong>.<br>
     <strong>ENG:</strong> Integrated tracking system supervised by <strong>Dr. Elena Lara</strong> and legal drafting assistance by <strong>Julián</strong>.</p>
 </div>
 
@@ -276,8 +281,8 @@ h1 {{ color: #38bdf8; margin: 0; font-size: 2.2em; }}
         <p>Monitoreo asistencial, contención pasiva y seguimiento estricto de agenda médica.</p>
     </div>
     <div class="module-card" style="border-left-color: #f59e0b;">
-        <h4>⚖️ Julián Legal (Apoyo Documental)</h4>
-        <p>Redacción y auditoría de borradores de contratos (Cuidados, Automotor 08, Inmuebles, Separación de Bienes, Testamentos).</p>
+        <h4>⚖️ Julián Legal (Apoyo Documental / IQ 156)</h4>
+        <p>Redacción, auditoría de riesgos y borradores de contratos/demandas con memoria de caso aislada.</p>
     </div>
 </div>
 
@@ -302,7 +307,7 @@ h1 {{ color: #38bdf8; margin: 0; font-size: 2.2em; }}
     <div class="card" style="border-color:#f59e0b;">
         <div>
             <h3>Suite Premium Full</h3>
-            <p style="color:#f59e0b; font-size:0.85em; font-weight:bold;">Acceso Total (Care + Módulo Legal).</p>
+            <p style="color:#f59e0b; font-size:0.85em; font-weight:bold;">Acceso Total (Care + Módulo Legal Julián).</p>
             <div class="price">$18.000 ARS</div>
         </div>
         <button onclick="abrirTerminos('SUITE')" class="btn-pay" style="background:#f59e0b; color:#000;">Contratar Plan</button>
@@ -317,7 +322,7 @@ h1 {{ color: #38bdf8; margin: 0; font-size: 2.2em; }}
         <h2 style="color:#38bdf8; margin: 0 0 10px 0; font-size:1.3em;">Términos & Condiciones / Terms & Conditions</h2>
         <div class="modal-body">
             <h3>ESP: Términos del Servicio y Privacidad</h3>
-            <p>Al contratar los servicios de Brunilda S.A.S., el usuario acepta la gestión asistencial y documental bajo Ley 25.326 y normativas aplicables. Los borradores legales emitidos por el módulo Julián requieren revisión profesional final.</p>
+            <p>Al contratar los servicios de Brunilda S.A.S., el usuario acepta la gestión asistencial y documental bajo Ley 25.326 y normativas aplicables. Los borradores legales emitidos por el módulo Julián requieren revisión profesional final por abogado matriculado.</p>
         </div>
         <div class="accept-container">
             <input type="checkbox" id="checkAcepto" onchange="validarAceptacion()">
@@ -381,8 +386,8 @@ h1 {{ color: #22c55e; }}
 def obtener_planes():
     return {
         "empresa": "Brunilda S.A.S.",
-        "directora_servicio": "Dra. Elena Lara",
-        "director_legal": "Julián",
+        "directora_servicio": "Dra. Elena Lara (IQ 165)",
+        "director_legal": "Julián (IQ 156)",
         "google_sheets_maestro": SPREADSHEET_URL,
         "planes_ars": [
             {"plan": "Elena Único", "precio_ars": 6000},
@@ -408,7 +413,7 @@ async def webhook_mercadopago(request: Request):
 def analizar_care(datos: EntradaCuidado):
     c = obtener_cliente_gemini()
     if not c:
-        raise HTTPException(status_code=500, detail="GEMINI_API_KEY no configurada.")
+        raise HTTPException(status_code=500, detail="GEMINI_API_KEY no configurada en servidor.")
     
     modulo_key = datos.modulo.upper()
     prompt_modulo = PROMPTS_ESPECIALIZADOS_CARE.get(modulo_key, PROMPTS_ESPECIALIZADOS_CARE["SENIOR"])
@@ -428,18 +433,20 @@ def analizar_care(datos: EntradaCuidado):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error en motor care: {str(e)}")
 
-# --- ENDPOINT 2: JULIÁN (REDACTAR CONTRATO) ---
+# --- ENDPOINT 2: JULIÁN (REDACTAR CONTRATO O PIEZA LEGAL CON MEMORIA EIDÉTICA POR CASO) ---
 @app.post("/legal/redactar-contrato")
 def redactar_contrato_legal(solicitud: SolicitudContratoLegal):
     c = obtener_cliente_gemini()
     if not c:
-        raise HTTPException(status_code=500, detail="GEMINI_API_KEY no configurada.")
+        raise HTTPException(status_code=500, detail="GEMINI_API_KEY no configurada en servidor.")
     
     prompt_usuario = (
-        f"Solicitud de Contrato / Instrumento: {solicitud.tipo_contrato}\n"
+        f"[CASE ID: {solicitud.case_id}]\n"
+        f"Abogado Revisor: {solicitud.abogado_nombre}\n"
+        f"Solicitud / Instrumento: {solicitud.tipo_contrato}\n"
         f"Idioma objetivo: {solicitud.idioma}\n"
         f"Datos de las partes y objeto: {json.dumps(solicitud.datos_partes, ensure_ascii=False)}\n"
-        f"Observaciones especiales: {solicitud.observaciones_especiales or 'Ninguna'}"
+        f"Observaciones especiales / Estrategia buscada: {solicitud.observaciones_especiales or 'Análisis de protección estándar'}"
     )
     
     try:
@@ -456,23 +463,27 @@ def redactar_contrato_legal(solicitud: SolicitudContratoLegal):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error en módulo legal Julián: {str(e)}")
 
-# --- ENDPOINT 3: JULIÁN (REVISIÓN Y CORRECCIÓN EN VIVO POR ABOGADO) ---
+# --- ENDPOINT 3: JULIÁN (REVISIÓN Y CORRECCIÓN EN VIVO CON EL ABOGADO) ---
 @app.post("/legal/revisar-contrato")
 def revisar_contrato_legal(solicitud: SolicitudRevisionContrato):
     c = obtener_cliente_gemini()
     if not c:
-        raise HTTPException(status_code=500, detail="GEMINI_API_KEY no configurada.")
+        raise HTTPException(status_code=500, detail="GEMINI_API_KEY no configurada en servidor.")
     
     prompt_revision = f"""
-    CONTRATO ORIGINAL:
+    [CASE ID: {solicitud.case_id}]
+    
+    CONTRATO O PIEZA ORIGINAL:
     {solicitud.contrato_original}
 
-    OBSERVACIONES Y CORRECCIONES DEL ABOGADO HUMANO EN VIVO:
+    OBSERVACIONES, MODIFICACIONES O CORRECCIONES DEL ABOGADO HUMANO EN VIVO:
     {solicitud.observaciones_abogado}
 
     INSTRUCCIÓN:
-    Aplica las correcciones indicadas por el abogado humano manteniendo el rigor técnico bajo la legislación argentina.
+    Asimila las correcciones indicadas por el abogado humano manteniendo el rigor técnico bajo la legislación argentina.
+    Asegúrate de actualizar el documento sin alterar el aislamiento del caso.
     Devuelve la respuesta en formato JSON estructurado con las mismas claves:
+    - "case_id"
     - "titulo_documento"
     - "resumen_ejecutivo"
     - "texto_contrato_borrador"
@@ -493,7 +504,7 @@ def revisar_contrato_legal(solicitud: SolicitudRevisionContrato):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error en revisión de Julián: {str(e)}")
 
-# --- ENDPOINT 4: APROBACIÓN FINALES Y ENVÍO DE MAIL OFICIAL ---
+# --- ENDPOINT 4: APROBACIÓN FINAL DRA. ELENA LARA Y ENVÍO DE MAIL OFICIAL ---
 @app.post("/legal/aprobar-y-enviar")
 def aprobar_y_enviar_contrato(datos: SolicitudAprobacionElena):
     cuerpo_mail = f"""
@@ -501,21 +512,21 @@ def aprobar_y_enviar_contrato(datos: SolicitudAprobacionElena):
     <body style="font-family: Arial, sans-serif; color: #333; line-height: 1.6;">
         <div style="background-color: #0f172a; color: #ffffff; padding: 20px; border-radius: 8px;">
             <h2 style="color: #38bdf8; margin: 0;">BRUNILDA S.A.S. - Certificación de Documento</h2>
-            <p style="margin: 5px 0 0 0; color: #94a3b8;">Oficina Ejecutiva de Protección | Dra. Elena Lara (CEO)</p>
+            <p style="margin: 5px 0 0 0; color: #94a3b8;">Oficina Ejecutiva de Protección | Dra. Elena Lara (CEO - IQ 165)</p>
         </div>
         <div style="padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px; margin-top: 15px;">
             <p>Estimado/a <strong>{datos.nombre_abogado}</strong>,</p>
-            <p>Se confirma la validación del instrumento jurídico <strong>"{datos.titulo_documento}"</strong> por el módulo legal de Julián y la posterior supervisión de esta Dirección.</p>
+            <p>Se confirma la validación y registro del instrumento jurídico <strong>"{datos.titulo_documento}"</strong> (Case ID: {datos.case_id}) procesado por el módulo legal de Julián (IQ 156) y supervisado por esta Dirección.</p>
             
             <hr style="border: 0; border-top: 1px solid #ccc; margin: 20px 0;">
             
-            <h3>DOCUMENTO VALIDADO:</h3>
+            <h3>DOCUMENTO VALIDADO POR EL PROFESIONAL RESPONSABLE:</h3>
             <div style="background-color: #f8fafc; padding: 15px; border-left: 4px solid #22c55e; font-family: monospace; white-space: pre-wrap;">
 {datos.texto_contrato_final}
             </div>
 
             <p style="font-size: 0.85em; color: #64748b; margin-top: 20px;">
-                * Documento registrado temporalmente en el Libro Maestro de Brunilda S.A.S. (Pendiente de timestamping en red Polygon).*
+                * Documento registrado formalmente en el Libro Maestro de Brunilda S.A.S. (Pendiente de timestamping en red Polygon).*
             </p>
         </div>
     </body>
@@ -524,30 +535,30 @@ def aprobar_y_enviar_contrato(datos: SolicitudAprobacionElena):
     
     exito = enviar_correo_contrato(
         destinatario=datos.email_abogado_o_cliente,
-        asunto=f"[BRUNILDA S.A.S.] Copia Validada: {datos.titulo_documento}",
+        asunto=f"[BRUNILDA S.A.S.] Documento Validado [{datos.case_id}]: {datos.titulo_documento}",
         contenido_html=cuerpo_mail
     )
     
     registrar_en_google_sheets(
         estado="CONTRATO_VALIDADO",
-        detalle=f"Aprobado por {datos.nombre_abogado} - {datos.titulo_documento}",
+        detalle=f"Aprobado por {datos.nombre_abogado} - Case: {datos.case_id}",
         monto="$0 ARS",
         plataforma="Envío Oficial Mail",
         pagado_status="Aprobado",
-        sig_key="JULIAN-LEGAL-LIVE"
+        sig_key=f"JULIAN-{datos.case_id}"
     )
     
     if exito:
-        return {"status": "ok", "mensaje": f"Contrato enviado exitosamente a {datos.email_abogado_o_cliente}"}
+        return {"status": "ok", "mensaje": f"Contrato enviado exitosamente a {datos.email_abogado_o_cliente} (Case ID: {datos.case_id})"}
     else:
-        return {"status": "warning", "mensaje": "Contrato procesado pero hubo un inconveniente al enviar el correo."}
+        return {"status": "warning", "mensaje": "Contrato procesado pero hubo un inconveniente con el servidor de correo."}
 
 # --- ENDPOINT 5: DRAGON (EVALUACIÓN DE PERFILACIÓN Y DUELO COGNITIVO) ---
 @app.post("/evaluar-dragon")
-def evaluar_dragon(datos: EntradaEvaluaciónDragon):
+def evaluar_dragon(datos: EntradaEvaluacionDragon):
     c = obtener_cliente_gemini()
     if not c:
-        raise HTTPException(status_code=500, detail="GEMINI_API_KEY no configurada.")
+        raise HTTPException(status_code=500, detail="GEMINI_API_KEY no configurada en servidor.")
     
     system_instruction_dragon = (
         "Actúa bajo el protocolo de la Doctora Elena Lara (IQ 165), CEO de Brunilda S.A.S. "
@@ -582,86 +593,3 @@ def evaluar_dragon(datos: EntradaEvaluaciónDragon):
         return dictamen
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error en módulo Dragon: {str(e)}")
-
-# ---------------------------------------------------------
-# INTERFAZ INTERACTIVA GRADIO PARA DEMO EN VIVO
-# ---------------------------------------------------------
-def demo_julian_legal(tipo_contrato, datos_partes_text, observaciones):
-    try:
-        datos_partes = json.loads(datos_partes_text)
-    except:
-        datos_partes = {"detalles": datos_partes_text}
-    
-    solic = SolicitudContratoLegal(
-        tipo_contrato=tipo_contrato,
-        datos_partes=datos_partes,
-        observaciones_especiales=observaciones
-    )
-    res = redactar_contrato_legal(solic)
-    return res.get("titulo_documento", ""), res.get("texto_contrato_borrador", ""), res.get("observaciones_legales_locales", "")
-
-def demo_revision_abogado(contrato_actual, correcciones_abogado):
-    solic = SolicitudRevisionContrato(
-        contrato_original=contrato_actual,
-        observaciones_abogado=correcciones_abogado
-    )
-    res = revisar_contrato_legal(solic)
-    return res.get("texto_contrato_borrador", ""), res.get("observaciones_legales_locales", "")
-
-def demo_aprobar_elena(titulo, contrato_final, email_abogado, nombre_abogado):
-    solic = SolicitudAprobacionElena(
-        titulo_documento=titulo,
-        texto_contrato_final=contrato_final,
-        email_abogado_o_cliente=email_abogado,
-        nombre_abogado=nombre_abogado
-    )
-    res = aprobar_y_enviar_contrato(solic)
-    return res["mensaje"]
-
-with gr.Blocks(title="Brunilda S.A.S. - Demostración en Vivo") as demo:
-    gr.Markdown("# ⚖️ Brunilda S.A.S. - Módulo Legal Julián & Dra. Elena Lara")
-    gr.Markdown("### Demostración en Vivo: Redacción, Auditoría Humana y Certificación Digital")
-    
-    with gr.Tab("1. Generar Borrador Inicial"):
-        tipo = gr.Dropdown(
-            ["COMPRAVENTA_AUTO", "DOMINIO_INMUEBLE", "SEPARACION_BIENES", "TESTAMENTO", "CUIDADO_ADULTO", "CONTRATO_LABORAL"], 
-            label="Tipo de Contrato / Instrumento",
-            value="COMPRAVENTA_AUTO"
-        )
-        partes = gr.Textbox(
-            lines=3, 
-            label="Datos de las Partes y Objeto (JSON o texto libre)", 
-            value='{"comprador": "Juan Perez, DNI 30.123.456", "vendedor": "Maria Gomez, DNI 28.654.321", "vehiculo": "Ford Focus 2018 Dominio AD12333", "monto": "$8.500.000 ARS"}'
-        )
-        obs = gr.Textbox(label="Observaciones Especiales", value="Pago 50% al contado y 50% contra transferencia en Registro Seccional DNRPA.")
-        btn_gen = gr.Button("🚀 Generar Borrador con Julián", variant="primary")
-        
-        titulo_out = gr.Textbox(label="Título del Documento")
-        contrato_out = gr.Textbox(lines=12, label="Borrador Generado")
-        obs_legales_out = gr.Textbox(label="Observaciones Técnicas para el Abogado Revisor")
-        
-        btn_gen.click(demo_julian_legal, inputs=[tipo, partes, obs], outputs=[titulo_out, contrato_out, obs_legales_out])
-        
-    with gr.Tab("2. Corrección en Vivo del Abogado"):
-        contrato_a_corregir = gr.Textbox(lines=10, label="Contrato Actual (Borrador)")
-        correcciones = gr.Textbox(lines=3, label="Correcciones / Comentarios del Abogado del Público", placeholder="Ej: Agregar cláusula de mora automática del 0.5% diario en caso de incumplimiento.")
-        btn_rev = gr.Button("🔄 Actualizar Borrador con Julián", variant="primary")
-        
-        contrato_actualizado = gr.Textbox(lines=12, label="Contrato Corregido (Versión v2)")
-        nuevas_obs = gr.Textbox(label="Nuevas Observaciones de Julián")
-        
-        btn_rev.click(demo_revision_abogado, inputs=[contrato_a_corregir, correcciones], outputs=[contrato_actualizado, nuevas_obs])
-
-    with gr.Tab("3. Aprobación Final y Envío de Correo"):
-        tit_final = gr.Textbox(label="Título del Documento Final")
-        doc_final = gr.Textbox(lines=10, label="Texto Definitivo del Contrato Aprobado")
-        nombre_abog = gr.Textbox(label="Nombre del Abogado / Revisor Humano", value="Dra. Mariana Pereyra")
-        email_abog = gr.Textbox(label="Correo Electrónico para Enviar Copia Validada", value="dra.elenalara.forense@gmail.com")
-        btn_aprobar = gr.Button("✅ Certificar por Dra. Elena Lara y Enviar Mail", variant="primary")
-        
-        resultado_envio = gr.Textbox(label="Estado del Envío y Certificación")
-        
-        btn_aprobar.click(demo_aprobar_elena, inputs=[tit_final, doc_final, email_abog, nombre_abog], outputs=[resultado_envio])
-
-# MONTAJE FINAL DE GRADIO EN FASTAPI
-app = gr.mount_gradio_app(app, demo, path="/demo-live")                
