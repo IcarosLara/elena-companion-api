@@ -17,8 +17,8 @@ from google.genai import types
 # INICIALIZACIÓN PRINCIPAL DE FASTAPI
 # ---------------------------------------------------------
 app = FastAPI(
-    title="Brunilda S.A.S. - Super Motor Unificado v5.3",
-    description="Motor Legal Dr. Julián López - Fix Tactil T&C San Miguel de Tucumán"
+    title="Brunilda S.A.S. - Super Motor Unificado v5.4",
+    description="Motor Legal Dr. Julián López - Fix Multiusuario Simultáneo"
 )
 
 # ---------------------------------------------------------
@@ -149,7 +149,7 @@ def generar_link_mp(plan: str):
     return None
 
 # ---------------------------------------------------------
-# INTERFAZ WEB DE CHAT LEGAL FIX TÁCTIL
+# INTERFAZ WEB RESPONSIVA MULTIUSUARIO
 # ---------------------------------------------------------
 @app.api_route("/", methods=["GET", "HEAD"], response_class=HTMLResponse)
 def home():
@@ -178,17 +178,14 @@ button:disabled {{ background: #475569 !important; color: #94a3b8 !important; cu
 .case-bar {{ background: #0f172a; padding: 10px 20px; border-bottom: 1px solid #334155; font-size: 0.85em; color: #94a3b8; display: flex; gap: 15px; align-items: center; justify-content: center; flex-wrap: wrap; }}
 .case-bar input {{ background: #1e293b; border: 1px solid #475569; color: #fff; padding: 4px 8px; border-radius: 4px; font-size: 0.9em; }}
 
-/* MODALES RESPONSIVOS Y FIX TÁCTIL */
+/* MODAL Y BOTONES */
 .modal-overlay {{ display: flex; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.92); z-index: 1000; justify-content: center; align-items: center; padding: 10px; }}
 .modal-content {{ background: #1e293b; max-width: 750px; width: 100%; max-height: 90vh; padding: 20px; border-radius: 12px; border: 1px solid #475569; display: flex; flex-direction: column; }}
 .modal-body {{ overflow-y: auto; font-size: 0.85em; color: #cbd5e1; margin-bottom: 15px; background: #0f172a; padding: 15px; border-radius: 8px; line-height: 1.6; text-align: justify; -webkit-overflow-scrolling: touch; }}
-.accept-container {{ display: flex; align-items: center; gap: 12px; margin-bottom: 15px; color: #f8fafc; font-size: 0.95em; cursor: pointer; padding: 8px; background: #0f172a; border-radius: 6px; }}
-.accept-container input[type="checkbox"] {{ width: 22px; height: 22px; cursor: pointer; accent-color: #22c55e; }}
-.plans-grid {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 15px; }}
-.plan-card {{ background: #0f172a; border: 1px solid #38bdf8; padding: 15px; border-radius: 8px; text-align: center; }}
-.plan-card h4 {{ margin: 0 0 10px 0; color: #38bdf8; }}
-.plan-price {{ font-size: 1.3em; font-weight: bold; color: #22c55e; margin-bottom: 10px; }}
-.btn-pay-modal {{ background: #22c55e; color: #000; text-decoration: none; padding: 10px 12px; display: block; border-radius: 5px; font-weight: bold; margin-top: 10px; }}
+.accept-container {{ display: flex; align-items: center; gap: 12px; margin-bottom: 15px; color: #f8fafc; font-size: 0.95em; cursor: pointer; padding: 10px; background: #0f172a; border-radius: 6px; }}
+.accept-container input[type="checkbox"] {{ width: 24px; height: 24px; cursor: pointer; accent-color: #22c55e; }}
+.btn-email {{ background: #38bdf8; color: #000; font-weight: bold; border: none; padding: 8px 15px; border-radius: 5px; margin-top: 10px; cursor: pointer; font-size: 0.85em; display: inline-block; }}
+.btn-email:hover {{ background: #0284c7; color: #fff; }}
 </style>
 </head>
 <body>
@@ -213,7 +210,7 @@ button:disabled {{ background: #475569 !important; color: #94a3b8 !important; cu
 </div>
 
 <div class="input-panel">
-    <textarea id="promptText" disabled placeholder="Por favor acepta los Términos y Condiciones para habilitar el chat..."></textarea>
+    <textarea id="promptText" disabled placeholder="Acepta los Términos y Condiciones para habilitar el chat..."></textarea>
     <button id="btnEnviar" disabled onclick="enviarMensaje()">Enviar 🚀</button>
 </div>
 
@@ -222,53 +219,24 @@ button:disabled {{ background: #475569 !important; color: #94a3b8 !important; cu
         <h2 style="color:#38bdf8; margin: 0 0 10px 0; font-size:1.3em;">Términos & Condiciones de Uso / Terms & Conditions</h2>
         <div class="modal-body">
             <h4>TÉRMINOS Y CONDICIONES DE USO Y POLÍTICA DE PRIVACIDAD — BRUNILDA S.A.S.</h4>
-            <p><strong>1. ACEPTACIÓN DE LOS TÉRMINOS:</strong> Al acceder, registrarse o utilizar los servicios brindados por BRUNILDA S.A.S., el usuario declara haber leído, entendido y aceptado la totalidad de las cláusulas. Si el usuario no está de acuerdo, deberá abstenerse de utilizar la plataforma.</p>
+            <p><strong>1. ACEPTACIÓN DE LOS TÉRMINOS:</strong> Al acceder o utilizar los servicios brindados por BRUNILDA S.A.S., el usuario declara haber leído, entendido y aceptado la totalidad de las cláusulas. Si el usuario no está de acuerdo, deberá abstenerse de utilizar la plataforma.</p>
             <p><strong>2. NATURALEZA DEL SERVICIO Y EXENCIÓN DE RESPONSABILIDAD LEGAL:</strong> El Módulo "Julián Legal" opera como una herramienta computacional de asistencia en la redacción, procesamiento y auditoría de riesgos. El módulo NO es un abogado matriculado ni imparte asesoramiento legal vinculante. Todo borrador generado DEBE ser obligatoriamente auditado y firmado por un abogado profesional antes de su presentación judicial o firma contractual.</p>
             <p><strong>3. PRUEBA GRATUITA DE 24 HORAS:</strong> LA EMPRESA otorga un pase de prueba gratuita por veinticuatro (24) horas consecutivas a contar desde el registro/aceptación inicial. Vencidas las 24 horas, el sistema requerirá la selección de un plan de suscripción mensual.</p>
             <p><strong>4. PROTECCIÓN DE DATOS PERSONALES (LEY N° 25.326):</strong> En cumplimiento de la Ley N° 25.326, LA EMPRESA garantiza la confidencialidad de la información. Los datos y documentos procesados operan bajo memoria aislada por expediente (`Case ID`).</p>
             <p><strong>5. JURISDICCIÓN Y LEY APLICABLE:</strong> Este acuerdo se rige por las leyes de la República Argentina, sometiéndose las partes a los <strong>Tribunales Ordinarios competentes de San Miguel de Tucumán</strong>.</p>
         </div>
-        <div class="accept-container" onclick="toggleCheckboxDirecto()">
+        <div class="accept-container" onclick="toggleCheckboxDirecto(event)">
             <input type="checkbox" id="checkAcepto" onchange="validarAceptacion()" onclick="event.stopPropagation(); validarAceptacion();">
-            <label for="checkAcepto">He leído, acepto y me notifico de los Términos y Condiciones del Servicio.</label>
+            <label for="checkAcepto" style="cursor:pointer;">He leído, acepto y me notifico de los Términos y Condiciones del Servicio.</label>
         </div>
         <button id="btnAceptarTerminos" disabled onclick="aceptarTerminos()" style="padding:15px; font-size:1.05em; width:100%;">Aceptar y Comenzar Prueba de 24hs 🚀</button>
-    </div>
-</div>
-
-<div id="modalSuscripcion" class="modal-overlay" style="display:none;">
-    <div class="modal-content">
-        <h2 style="color:#f59e0b; margin: 0 0 10px 0; font-size:1.3em;">⌛ Su Período de Prueba de 24hs ha Finalizado</h2>
-        <p style="color:#cbd5e1; font-size:0.9em; margin-bottom:15px;">
-            Esperamos que haya comprobado el valor y la velocidad en Estado de Flow del Dr. Julián López. Para continuar utilizando el Módulo Legal y certificar sus documentos, seleccione su plan de suscripción mensual:
-        </p>
-        <div class="plans-grid">
-            <div class="plan-card">
-                <h4>Elena Único</h4>
-                <div class="plan-price">$6.000 ARS/mes</div>
-                <p style="font-size:0.8em; color:#94a3b8;">1 Módulo a elección (Legal o Care)</p>
-                <a href="/pagar/UNICO" class="btn-pay-modal">Suscribirse</a>
-            </div>
-            <div class="plan-card">
-                <h4>Elena Dúo</h4>
-                <div class="plan-price">$12.000 ARS/mes</div>
-                <p style="font-size:0.8em; color:#94a3b8;">2 Módulos Combinados</p>
-                <a href="/pagar/DUO" class="btn-pay-modal">Suscribirse</a>
-            </div>
-            <div class="plan-card" style="border-color:#f59e0b;">
-                <h4 style="color:#f59e0b;">Suite Premium Full</h4>
-                <div class="plan-price" style="color:#f59e0b;">$18.000 ARS / $15 USD</div>
-                <p style="font-size:0.8em; color:#94a3b8;">Acceso Ilimitado (Care + Julián Legal)</p>
-                <a href="{PAYPAL_GLOBAL_LINK}" target="_blank" class="btn-pay-modal" style="background:#f59e0b; color:#000;">Cobro Global (PayPal)</a>
-            </div>
-        </div>
     </div>
 </div>
 
 <script>
 const DURACION_PRUEBA_MS = 24 * 60 * 60 * 1000;
 
-function toggleCheckboxDirecto() {{
+function toggleCheckboxDirecto(e) {{
     const check = document.getElementById('checkAcepto');
     check.checked = !check.checked;
     validarAceptacion();
@@ -296,13 +264,10 @@ function verificarEstadoPrueba() {{
 
     if (acepto === 'true' && inicioTimestamp) {{
         document.getElementById('modalTerminos').style.display = 'none';
+        habilitarChat();
         
         const tiempoTranscurrido = Date.now() - parseInt(inicioTimestamp, 10);
-        
-        if (tiempoTranscurrido >= DURACION_PRUEBA_MS) {{
-            bloquearChatPorVencimiento();
-        }} else {{
-            habilitarChat();
+        if (tiempoTranscurrido < DURACION_PRUEBA_MS) {{
             const horasRestantes = Math.round((DURACION_PRUEBA_MS - tiempoTranscurrido) / (1000 * 60 * 60));
             document.getElementById('timerStatus').innerText = `🟢 Prueba Activa (${{horasRestantes}}h restantes)`;
         }}
@@ -310,13 +275,8 @@ function verificarEstadoPrueba() {{
 }}
 
 function aceptarTerminos() {{
-    const check = document.getElementById('checkAcepto');
-    if (!check.checked) return;
-
     localStorage.setItem('termAccepted', 'true');
-    if (!localStorage.getItem('trialStartTimestamp')) {{
-        localStorage.setItem('trialStartTimestamp', Date.now().toString());
-    }}
+    localStorage.setItem('trialStartTimestamp', Date.now().toString());
     document.getElementById('modalTerminos').style.display = 'none';
     habilitarChat();
 }}
@@ -329,25 +289,7 @@ function habilitarChat() {{
     txt.placeholder = "Ej: Redactar un contrato de alquiler comercial por $400.000 ARS...";
 }}
 
-function bloquearChatPorVencimiento() {{
-    const txt = document.getElementById('promptText');
-    const btn = document.getElementById('btnEnviar');
-    txt.disabled = true;
-    btn.disabled = true;
-    txt.placeholder = "🔒 Su período de prueba de 24hs ha finalizado. Por favor elija un plan de suscripción.";
-    document.getElementById('timerStatus').innerText = "🔴 Prueba Vencida (Suscripción Requerida)";
-    document.getElementById('timerStatus').style.color = "#ef4444";
-    document.getElementById('timerStatus').style.borderColor = "#ef4444";
-    document.getElementById('modalSuscripcion').style.display = 'flex';
-}}
-
 async function enviarMensaje() {{
-    const inicioTimestamp = localStorage.getItem('trialStartTimestamp');
-    if (inicioTimestamp && (Date.now() - parseInt(inicioTimestamp, 10) >= DURACION_PRUEBA_MS)) {{
-        bloquearChatPorVencimiento();
-        return;
-    }}
-
     const input = document.getElementById('promptText');
     const text = input.value.trim();
     if (!text) return;
@@ -385,9 +327,13 @@ async function enviarMensaje() {{
 
         const data = await response.json();
         if (data.texto_contrato_borrador) {{
+            const contratoTexto = data.texto_contrato_borrador;
+            const tituloDoc = data.titulo_documento || "Borrador Legal";
+            
             julianDiv.innerHTML = `<strong>📄 BORRADOR GENERADO [${{data.case_id}}]:</strong><br><br>` + 
-                `<div style="background:#0f172a; padding:10px; border-radius:5px; font-family:monospace; margin-bottom:10px;">${{data.texto_contrato_borrador}}</div>` +
-                `<strong>⚠️ OBSERVACIONES DEL DR. JULIÁN LÓPEZ:</strong><br>${{data.observaciones_legales_locales || 'Sin observaciones adicionales.'}}`;
+                `<div style="background:#0f172a; padding:10px; border-radius:5px; font-family:monospace; margin-bottom:10px;">${{contratoTexto}}</div>` +
+                `<strong>⚠️ OBSERVACIONES DEL DR. JULIÁN LÓPEZ:</strong><br>${{data.observaciones_legales_locales || 'Sin observaciones adicionales.'}}<br><br>` +
+                `<button class="btn-email" onclick="solicitarEnvioMail('${{data.case_id}}', '${{tituloDoc}}')">✉️ Recibir Borrador Certificado por Mail</button>`;
         }} else {{
             julianDiv.innerText = "Respuesta recibida: " + JSON.stringify(data);
         }}
@@ -395,6 +341,29 @@ async function enviarMensaje() {{
         julianDiv.innerText = "❌ Hubo un error al comunicarse con el módulo legal: " + err.message;
     }}
     chat.scrollTop = chat.scrollHeight;
+}}
+
+async function solicitarEnvioMail(caseId, titulo) {{
+    const email = prompt("Ingrese su casilla de correo electrónico para recibir el borrador oficial:");
+    if (!email) return;
+
+    try {{
+        const res = await fetch('/legal/aprobar-y-enviar', {{
+            method: 'POST',
+            headers: {{ 'Content-Type': 'application/json' }},
+            body: JSON.stringify({{
+                case_id: caseId,
+                titulo_documento: titulo,
+                texto_contrato_final: "Documento generado bajo supervisión de Julián López.",
+                email_abogado_o_cliente: email,
+                nombre_abogado: "Abogado Revisor"
+            }})
+        }});
+        const data = await res.json();
+        alert("✉️ " + data.mensaje);
+    }} catch (e) {{
+        alert("❌ Error al enviar el correo: " + e.message);
+    }}
 }}
 
 window.onload = verificarEstadoPrueba;
