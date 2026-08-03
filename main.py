@@ -17,8 +17,8 @@ from google.genai import types
 # INICIALIZACIÓN PRINCIPAL DE FASTAPI
 # ---------------------------------------------------------
 app = FastAPI(
-    title="Brunilda S.A.S. - Super Motor Unificado v5.4",
-    description="Motor Legal Dr. Julián López - Fix Multiusuario Simultáneo"
+    title="Brunilda S.A.S. - Super Motor Unificado v6.0",
+    description="Motor Legal Dr. Julián López - Direct Flow Access (Sin Bloqueos)"
 )
 
 # ---------------------------------------------------------
@@ -113,43 +113,8 @@ def enviar_correo_contrato(destinatario: str, asunto: str, contenido_html: str):
         print(f"⚠️ [ERROR ENVIO MAIL]: {e}")
         return False
 
-def generar_link_mp(plan: str):
-    precios = {
-        "UNICO": {"titulo": "Brunilda S.A.S - Elena Unico", "precio": 6000},
-        "DUO": {"titulo": "Brunilda S.A.S - Elena Duo", "precio": 12000},
-        "SUITE": {"titulo": "Brunilda S.A.S - Elena Premium Suite", "precio": 18000}
-    }
-    plan_info = precios.get(plan.upper(), precios["UNICO"])
-    url = "https://api.mercadopago.com/checkout/preferences"
-    headers = {
-        "Authorization": f"Bearer {TOKEN_MP}",
-        "Content-Type": "application/json"
-    }
-    payload = {
-        "items": [{
-            "title": plan_info["titulo"],
-            "quantity": 1,
-            "unit_price": plan_info["precio"],
-            "currency_id": "ARS"
-        }],
-        "back_urls": {
-            "success": "https://elena-companion-api.onrender.com/pago-exitoso",
-            "failure": "https://elena-companion-api.onrender.com/",
-            "pending": "https://elena-companion-api.onrender.com/"
-        },
-        "auto_return": "approved",
-        "notification_url": "https://elena-companion-api.onrender.com/webhook/mercadopago"
-    }
-    try:
-        res = requests.post(url, headers=headers, json=payload, timeout=5)
-        if res.status_code == 201:
-            return res.json().get("init_point")
-    except Exception as e:
-        print("⚠️ [ERROR MP]:", e)
-    return None
-
 # ---------------------------------------------------------
-# INTERFAZ WEB RESPONSIVA MULTIUSUARIO
+# INTERFAZ WEB DIRECTA (100% FLUIDA SIN BLOQUEOS)
 # ---------------------------------------------------------
 @app.api_route("/", methods=["GET", "HEAD"], response_class=HTMLResponse)
 def home():
@@ -169,30 +134,23 @@ body {{ font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background
 .msg {{ max-width: 85%; padding: 12px 16px; border-radius: 10px; line-height: 1.5; font-size: 0.95em; white-space: pre-wrap; }}
 .msg-julian {{ background: #1e293b; border-left: 4px solid #38bdf8; align-self: flex-start; color: #f8fafc; }}
 .msg-user {{ background: #0284c7; align-self: flex-end; color: #ffffff; border-radius: 10px 10px 0 10px; }}
-.input-panel {{ background: #1e293b; border-top: 1px solid #334155; padding: 15px; display: flex; gap: 10px; max-width: 900px; width: 100%; margin: 0 auto; box-sizing: border-box; }}
+.input-panel {{ background: #1e293b; border-top: 1px solid #334155; padding: 12px 15px; display: flex; flex-direction: column; gap: 8px; max-width: 900px; width: 100%; margin: 0 auto; box-sizing: border-box; }}
+.input-row {{ display: flex; gap: 10px; width: 100%; }}
 textarea {{ flex: 1; background: #0f172a; border: 1px solid #475569; color: #f8fafc; border-radius: 8px; padding: 10px; resize: none; height: 50px; font-family: inherit; font-size: 16px; }}
 textarea:focus {{ outline: none; border-color: #38bdf8; }}
 button {{ background: #22c55e; color: #000; font-weight: bold; border: none; border-radius: 8px; padding: 0 20px; cursor: pointer; transition: all 0.2s; -webkit-tap-highlight-color: transparent; }}
 button:hover {{ background: #16a34a; color: #fff; }}
-button:disabled {{ background: #475569 !important; color: #94a3b8 !important; cursor: not-allowed !important; opacity: 0.6; }}
 .case-bar {{ background: #0f172a; padding: 10px 20px; border-bottom: 1px solid #334155; font-size: 0.85em; color: #94a3b8; display: flex; gap: 15px; align-items: center; justify-content: center; flex-wrap: wrap; }}
 .case-bar input {{ background: #1e293b; border: 1px solid #475569; color: #fff; padding: 4px 8px; border-radius: 4px; font-size: 0.9em; }}
-
-/* MODAL Y BOTONES */
-.modal-overlay {{ display: flex; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.92); z-index: 1000; justify-content: center; align-items: center; padding: 10px; }}
-.modal-content {{ background: #1e293b; max-width: 750px; width: 100%; max-height: 90vh; padding: 20px; border-radius: 12px; border: 1px solid #475569; display: flex; flex-direction: column; }}
-.modal-body {{ overflow-y: auto; font-size: 0.85em; color: #cbd5e1; margin-bottom: 15px; background: #0f172a; padding: 15px; border-radius: 8px; line-height: 1.6; text-align: justify; -webkit-overflow-scrolling: touch; }}
-.accept-container {{ display: flex; align-items: center; gap: 12px; margin-bottom: 15px; color: #f8fafc; font-size: 0.95em; cursor: pointer; padding: 10px; background: #0f172a; border-radius: 6px; }}
-.accept-container input[type="checkbox"] {{ width: 24px; height: 24px; cursor: pointer; accent-color: #22c55e; }}
+.legal-disclaimer {{ font-size: 0.72em; color: #64748b; text-align: center; margin: 0; }}
 .btn-email {{ background: #38bdf8; color: #000; font-weight: bold; border: none; padding: 8px 15px; border-radius: 5px; margin-top: 10px; cursor: pointer; font-size: 0.85em; display: inline-block; }}
-.btn-email:hover {{ background: #0284c7; color: #fff; }}
 </style>
 </head>
 <body>
 
 <div class="header">
     <h1>⚖️ BRUNILDA S.A.S. — Módulo Legal (Dr. Julián López)</h1>
-    <span class="header-status" id="timerStatus">🟢 Prueba 24hs Activa</span>
+    <span class="header-status">🟢 Acceso Directo Activo</span>
 </div>
 
 <div class="case-bar">
@@ -205,90 +163,21 @@ button:disabled {{ background: #475569 !important; color: #94a3b8 !important; cu
 <div class="chat-container" id="chat">
     <div class="msg msg-julian">
         👋 <strong>¡Hola! Soy el Dr. Julián López (IQ 156)</strong>, Director de Asuntos Legales de Brunilda S.A.S.<br><br>
-        Estoy listo en <strong>Estado de Flow</strong> para trabajar con vos. Una vez aceptados los Términos y Condiciones, escribime qué escrito procesal, contrato o demanda necesitas redactar o revisar bajo la legislación argentina.
+        Estoy listo en <strong>Estado de Flow</strong> para trabajar con vos. Escribime qué escrito procesal, contrato o demanda necesitas redactar o revisar bajo la legislación argentina.
     </div>
 </div>
 
 <div class="input-panel">
-    <textarea id="promptText" disabled placeholder="Acepta los Términos y Condiciones para habilitar el chat..."></textarea>
-    <button id="btnEnviar" disabled onclick="enviarMensaje()">Enviar 🚀</button>
-</div>
-
-<div id="modalTerminos" class="modal-overlay">
-    <div class="modal-content">
-        <h2 style="color:#38bdf8; margin: 0 0 10px 0; font-size:1.3em;">Términos & Condiciones de Uso / Terms & Conditions</h2>
-        <div class="modal-body">
-            <h4>TÉRMINOS Y CONDICIONES DE USO Y POLÍTICA DE PRIVACIDAD — BRUNILDA S.A.S.</h4>
-            <p><strong>1. ACEPTACIÓN DE LOS TÉRMINOS:</strong> Al acceder o utilizar los servicios brindados por BRUNILDA S.A.S., el usuario declara haber leído, entendido y aceptado la totalidad de las cláusulas. Si el usuario no está de acuerdo, deberá abstenerse de utilizar la plataforma.</p>
-            <p><strong>2. NATURALEZA DEL SERVICIO Y EXENCIÓN DE RESPONSABILIDAD LEGAL:</strong> El Módulo "Julián Legal" opera como una herramienta computacional de asistencia en la redacción, procesamiento y auditoría de riesgos. El módulo NO es un abogado matriculado ni imparte asesoramiento legal vinculante. Todo borrador generado DEBE ser obligatoriamente auditado y firmado por un abogado profesional antes de su presentación judicial o firma contractual.</p>
-            <p><strong>3. PRUEBA GRATUITA DE 24 HORAS:</strong> LA EMPRESA otorga un pase de prueba gratuita por veinticuatro (24) horas consecutivas a contar desde el registro/aceptación inicial. Vencidas las 24 horas, el sistema requerirá la selección de un plan de suscripción mensual.</p>
-            <p><strong>4. PROTECCIÓN DE DATOS PERSONALES (LEY N° 25.326):</strong> En cumplimiento de la Ley N° 25.326, LA EMPRESA garantiza la confidencialidad de la información. Los datos y documentos procesados operan bajo memoria aislada por expediente (`Case ID`).</p>
-            <p><strong>5. JURISDICCIÓN Y LEY APLICABLE:</strong> Este acuerdo se rige por las leyes de la República Argentina, sometiéndose las partes a los <strong>Tribunales Ordinarios competentes de San Miguel de Tucumán</strong>.</p>
-        </div>
-        <div class="accept-container" onclick="toggleCheckboxDirecto(event)">
-            <input type="checkbox" id="checkAcepto" onchange="validarAceptacion()" onclick="event.stopPropagation(); validarAceptacion();">
-            <label for="checkAcepto" style="cursor:pointer;">He leído, acepto y me notifico de los Términos y Condiciones del Servicio.</label>
-        </div>
-        <button id="btnAceptarTerminos" disabled onclick="aceptarTerminos()" style="padding:15px; font-size:1.05em; width:100%;">Aceptar y Comenzar Prueba de 24hs 🚀</button>
+    <div class="input-row">
+        <textarea id="promptText" placeholder="Ej: Redactar un contrato de alquiler comercial en CABA por $400.000 ARS..."></textarea>
+        <button id="btnEnviar" onclick="enviarMensaje()">Enviar 🚀</button>
     </div>
+    <p class="legal-disclaimer">
+        Al interactuar con el módulo, aceptás los Términos de Servicio y Protección de Datos (Ley 25.326 - Tribunales de San Miguel de Tucumán).
+    </p>
 </div>
 
 <script>
-const DURACION_PRUEBA_MS = 24 * 60 * 60 * 1000;
-
-function toggleCheckboxDirecto(e) {{
-    const check = document.getElementById('checkAcepto');
-    check.checked = !check.checked;
-    validarAceptacion();
-}}
-
-function validarAceptacion() {{
-    const check = document.getElementById('checkAcepto');
-    const btn = document.getElementById('btnAceptarTerminos');
-    if (check.checked) {{
-        btn.disabled = false;
-        btn.style.background = '#22c55e';
-        btn.style.color = '#000000';
-        btn.style.opacity = '1';
-    }} else {{
-        btn.disabled = true;
-        btn.style.background = '#475569';
-        btn.style.color = '#94a3b8';
-        btn.style.opacity = '0.6';
-    }}
-}}
-
-function verificarEstadoPrueba() {{
-    const acepto = localStorage.getItem('termAccepted');
-    const inicioTimestamp = localStorage.getItem('trialStartTimestamp');
-
-    if (acepto === 'true' && inicioTimestamp) {{
-        document.getElementById('modalTerminos').style.display = 'none';
-        habilitarChat();
-        
-        const tiempoTranscurrido = Date.now() - parseInt(inicioTimestamp, 10);
-        if (tiempoTranscurrido < DURACION_PRUEBA_MS) {{
-            const horasRestantes = Math.round((DURACION_PRUEBA_MS - tiempoTranscurrido) / (1000 * 60 * 60));
-            document.getElementById('timerStatus').innerText = `🟢 Prueba Activa (${{horasRestantes}}h restantes)`;
-        }}
-    }}
-}}
-
-function aceptarTerminos() {{
-    localStorage.setItem('termAccepted', 'true');
-    localStorage.setItem('trialStartTimestamp', Date.now().toString());
-    document.getElementById('modalTerminos').style.display = 'none';
-    habilitarChat();
-}}
-
-function habilitarChat() {{
-    const txt = document.getElementById('promptText');
-    const btn = document.getElementById('btnEnviar');
-    txt.disabled = false;
-    btn.disabled = false;
-    txt.placeholder = "Ej: Redactar un contrato de alquiler comercial por $400.000 ARS...";
-}}
-
 async function enviarMensaje() {{
     const input = document.getElementById('promptText');
     const text = input.value.trim();
@@ -365,8 +254,6 @@ async function solicitarEnvioMail(caseId, titulo) {{
         alert("❌ Error al enviar el correo: " + e.message);
     }}
 }}
-
-window.onload = verificarEstadoPrueba;
 </script>
 
 </body>
@@ -375,33 +262,6 @@ window.onload = verificarEstadoPrueba;
 # ---------------------------------------------------------
 # ENDPOINTS OPERATIVOS
 # ---------------------------------------------------------
-@app.get("/planes")
-def obtener_planes():
-    return {
-        "empresa": "Brunilda S.A.S.",
-        "directora_servicio": "Dra. Elena Lara (IQ 165)",
-        "director_legal": "Dr. Julián López (IQ 156 - Flow State)",
-        "google_sheets_maestro": SPREADSHEET_URL,
-        "planes_ars": [
-            {"plan": "Elena Único", "precio_ars": 6000},
-            {"plan": "Elena Dúo", "precio_ars": 12000},
-            {"plan": "Suite Premium Full", "precio_ars": 18000}
-        ],
-        "planes_usd": {"precio_usd": 15.00, "pasarela": PAYPAL_GLOBAL_LINK}
-    }
-
-@app.get("/pagar/{plan}")
-def pagar_plan(plan: str):
-    link = generar_link_mp(plan)
-    if link:
-        return RedirectResponse(url=link)
-    raise HTTPException(status_code=500, detail="Error al conectar con Mercado Pago")
-
-@app.post("/webhook/mercadopago")
-async def webhook_mercadopago(request: Request):
-    return {"status": "ok"}
-
-# --- ENDPOINT LEGAL ---
 @app.post("/legal/redactar-contrato")
 def redactar_contrato_legal(solicitud: SolicitudContratoLegal):
     c = obtener_cliente_gemini()
