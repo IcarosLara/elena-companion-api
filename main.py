@@ -18,7 +18,7 @@ from google.genai import types
 # ---------------------------------------------------------
 app = FastAPI(
     title="Brunilda S.A.S. - Super Motor Unificado v8.0",
-    description="Motor Legal Dr. Julián López - Master Architect Mode & Multiverse Protocol"
+    description="Motor Legal Dr. Julián López - Master Architect Mode & Sheet Tracking"
 )
 
 # ---------------------------------------------------------
@@ -314,7 +314,8 @@ def redactar_contrato_legal(solicitud: SolicitudContratoLegal):
     )
     
     try:
-        response = c.models.generate-content(
+        # Método oficial de la SDK google-genai
+        response = c.models.generate_content(
             model='gemini-2.5-flash',
             contents=prompt_usuario,
             config=types.GenerateContentConfig(
@@ -325,6 +326,7 @@ def redactar_contrato_legal(solicitud: SolicitudContratoLegal):
         )
         return json.loads(response.text)
     except Exception as e:
+        print(f"⚠️ [ERROR GEMINI CORE]: {e}")
         raise HTTPException(status_code=500, detail=f"Error en Julián: {str(e)}")
 
 @app.post("/legal/aprobar-y-enviar")
