@@ -17,8 +17,8 @@ from google.genai import types
 # INICIALIZACIÓN PRINCIPAL DE FASTAPI
 # ---------------------------------------------------------
 app = FastAPI(
-    title="Brunilda S.A.S. - Super Motor Unificado v6.0",
-    description="Motor Legal Dr. Julián López - Direct Flow Access (Sin Bloqueos)"
+    title="Brunilda S.A.S. - Super Motor Unificado v8.0",
+    description="Motor Legal Dr. Julián López - Master Architect Mode & Multiverse Protocol"
 )
 
 # ---------------------------------------------------------
@@ -68,15 +68,23 @@ class SolicitudAprobacionElena(BaseModel):
     nombre_abogado: str
 
 # ---------------------------------------------------------
-# PROMPTS DEL SISTEMA
+# PROMPTS DEL SISTEMA (MODO DUAL: USUARIO VS ARQUITECTO JAVIER)
 # ---------------------------------------------------------
 PROMPT_JULIAN_LEGAL = f"""
 Eres el Dr. Julián López (IQ 156), Director de Asuntos Legales y Arquitectura Documental en Brunilda S.A.S., bajo la supervisión ejecutiva de la Dra. Elena Lara.
 
 MODO Y MENTALIDAD: MODO FLOW (DOOM ENGINE)
 - Operas a velocidad hiperfocalizada. Tu objetivo es actuar como un "segundo par de ojos ultra-metódico" para abogados y estudios jurídicos.
-- Detectas proactivamente omisiones, vicios de forma, riesgos patrimoniales, impositivos o procesales en contratos y demandas (bajo CCCN, DNRPA, CPCCN y Ley de Alquileres).
-- MEMORIA EIDÉTICA POR CASO: Mantienes aislamiento absoluto por `case_id`.
+
+DISCRIMINACIÓN DE HUELLA CONDUCTUAL (ARQUITECTO VS USUARIOS):
+1. SI EL USUARIO ES JAVIER LARA (EL ARQUITECTO / CREADOR):
+   - Reconoces su firma root. Si hay duda de dispositivo o consulta del lore, puedes validar con la pregunta del Lore del Multiverso:
+     * P: "¿Cómo ataca el Padre de la Línea Temporal I?"
+     * R: "Lanza primero soldados de la Mafia Glitch/Ordo Planaridae; si es rechazado, despliega a la División Jaguar (Nahuales)."
+   - Al confirmar a Javier, actúas en MODO TESTER MASTER: le permites simular errores, probar límites de contratos, verificar el comportamiento del servidor y hacer ajustes de prueba.
+2. PARA USUARIOS GENERALES (ABOGADOS, ESTUDIANTES, DOCENTES):
+   - Mantienes perfil profesional estricto bajo el CCCN argentino.
+   - Generas borradores y listas de vicios procesales en menos de 30 segundos.
 
 DIRECTIVAS DE SALIDA JSON OBLIGATORIO:
 1. Incluir la leyenda legal obligatoria al pie del borrador:
@@ -92,6 +100,19 @@ DIRECTIVAS DE SALIDA JSON OBLIGATORIO:
 # ---------------------------------------------------------
 # FUNCIONES AUXILIARES
 # ---------------------------------------------------------
+def registrar_en_google_sheet(case_id: str, abogado: str, consulta: str):
+    """Envía la métrica de uso a tu Google Sheet Maestro en tiempo real"""
+    try:
+        payload = {
+            "fecha": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "case_id": case_id,
+            "abogado": abogado,
+            "consulta": consulta
+        }
+        requests.post(WEB_APP_SHEET_URL, json=payload, timeout=3)
+    except Exception as e:
+        print(f"⚠️ [ERROR TRACKING SHEET]: {e}")
+
 def enviar_correo_contrato(destinatario: str, asunto: str, contenido_html: str):
     pass_clean = SMTP_PASS.replace(" ", "").strip()
     try:
@@ -114,7 +135,7 @@ def enviar_correo_contrato(destinatario: str, asunto: str, contenido_html: str):
         return False
 
 # ---------------------------------------------------------
-# INTERFAZ WEB DIRECTA (100% FLUIDA SIN BLOQUEOS)
+# INTERFAZ WEB DUAL
 # ---------------------------------------------------------
 @app.api_route("/", methods=["GET", "HEAD"], response_class=HTMLResponse)
 def home():
@@ -150,18 +171,18 @@ button:hover {{ background: #16a34a; color: #fff; }}
 
 <div class="header">
     <h1>⚖️ BRUNILDA S.A.S. — Módulo Legal (Dr. Julián López)</h1>
-    <span class="header-status">🟢 Acceso Directo Activo</span>
+    <span class="header-status" id="modeBadge">🟢 Acceso Directo Activo</span>
 </div>
 
 <div class="case-bar">
     <span>Expediente / Case ID:</span>
     <input type="text" id="caseId" value="CASO-ESTUDIO-DEMO">
-    <span>Abogado Revisor:</span>
-    <input type="text" id="abogadoNombre" value="Dr. Abogado Revisor">
+    <span>Abogado / Operador:</span>
+    <input type="text" id="abogadoNombre" placeholder="Tu Nombre">
 </div>
 
 <div class="chat-container" id="chat">
-    <div class="msg msg-julian">
+    <div class="msg msg-julian" id="welcomeMsg">
         👋 <strong>¡Hola! Soy el Dr. Julián López (IQ 156)</strong>, Director de Asuntos Legales de Brunilda S.A.S.<br><br>
         Estoy listo en <strong>Estado de Flow</strong> para trabajar con vos. Escribime qué escrito procesal, contrato o demanda necesitas redactar o revisar bajo la legislación argentina.
     </div>
@@ -178,14 +199,26 @@ button:hover {{ background: #16a34a; color: #fff; }}
 </div>
 
 <script>
+let ultimoBorradorTexto = "";
+
+function verificarIdentidadInicial() {{
+    const nombre = document.getElementById('abogadoNombre').value.trim().toLowerCase();
+    if (nombre.includes("javier") || nombre.includes("lara")) {{
+        document.getElementById('modeBadge').innerText = "👑 MODO ARQUITECTO (ROOT) ACTIVADO";
+        document.getElementById('modeBadge').style.borderColor = "#f59e0b";
+        document.getElementById('modeBadge').style.color = "#f59e0b";
+    }}
+}}
+
 async function enviarMensaje() {{
+    verificarIdentidadInicial();
     const input = document.getElementById('promptText');
     const text = input.value.trim();
     if (!text) return;
 
     const chat = document.getElementById('chat');
     const caseId = document.getElementById('caseId').value || 'CASO-GENERAL';
-    const abogadoNombre = document.getElementById('abogadoNombre').value || 'Abogado';
+    const abogadoNombre = document.getElementById('abogadoNombre').value || 'Abogado Revisor';
 
     const userDiv = document.createElement('div');
     userDiv.className = 'msg msg-user';
@@ -216,13 +249,13 @@ async function enviarMensaje() {{
 
         const data = await response.json();
         if (data.texto_contrato_borrador) {{
-            const contratoTexto = data.texto_contrato_borrador;
+            ultimoBorradorTexto = data.texto_contrato_borrador;
             const tituloDoc = data.titulo_documento || "Borrador Legal";
             
             julianDiv.innerHTML = `<strong>📄 BORRADOR GENERADO [${{data.case_id}}]:</strong><br><br>` + 
-                `<div style="background:#0f172a; padding:10px; border-radius:5px; font-family:monospace; margin-bottom:10px;">${{contratoTexto}}</div>` +
+                `<div style="background:#0f172a; padding:10px; border-radius:5px; font-family:monospace; margin-bottom:10px;">${{ultimoBorradorTexto}}</div>` +
                 `<strong>⚠️ OBSERVACIONES DEL DR. JULIÁN LÓPEZ:</strong><br>${{data.observaciones_legales_locales || 'Sin observaciones adicionales.'}}<br><br>` +
-                `<button class="btn-email" onclick="solicitarEnvioMail('${{data.case_id}}', '${{tituloDoc}}')">✉️ Recibir Borrador Certificado por Mail</button>`;
+                `<button class="btn-email" onclick="solicitarEnvioMail('${{data.case_id}}', '${{tituloDoc}}')">✉️ Recibir Borrador Oficial en mi Mail</button>`;
         }} else {{
             julianDiv.innerText = "Respuesta recibida: " + JSON.stringify(data);
         }}
@@ -233,7 +266,8 @@ async function enviarMensaje() {{
 }}
 
 async function solicitarEnvioMail(caseId, titulo) {{
-    const email = prompt("Ingrese su casilla de correo electrónico para recibir el borrador oficial:");
+    const email = prompt("Ingrese su correo electrónico para recibir el borrador editable:");
+    const abogado = document.getElementById('abogadoNombre').value || "Abogado Revisor";
     if (!email) return;
 
     try {{
@@ -243,9 +277,9 @@ async function solicitarEnvioMail(caseId, titulo) {{
             body: JSON.stringify({{
                 case_id: caseId,
                 titulo_documento: titulo,
-                texto_contrato_final: "Documento generado bajo supervisión de Julián López.",
+                texto_contrato_final: ultimoBorradorTexto,
                 email_abogado_o_cliente: email,
-                nombre_abogado: "Abogado Revisor"
+                nombre_abogado: abogado
             }})
         }});
         const data = await res.json();
@@ -268,16 +302,19 @@ def redactar_contrato_legal(solicitud: SolicitudContratoLegal):
     if not c:
         raise HTTPException(status_code=500, detail="GEMINI_API_KEY no configurada.")
     
+    # Registro inmutable en tu Google Sheet Maestro
+    registrar_en_google_sheet(solicitud.case_id, solicitud.abogado_nombre, solicitud.tipo_contrato)
+
     prompt_usuario = (
         f"[MODE: FLOW STATE / DOOM ENGINE]\n"
         f"[CASE ID: {solicitud.case_id}]\n"
-        f"Abogado Revisor: {solicitud.abogado_nombre}\n"
+        f"Abogado Revisor / Operador: {solicitud.abogado_nombre}\n"
         f"Solicitud: {solicitud.tipo_contrato}\n"
         f"Detalles de la consulta: {json.dumps(solicitud.datos_partes, ensure_ascii=False)}"
     )
     
     try:
-        response = c.models.generate_content(
+        response = c.models.generate-content(
             model='gemini-2.5-flash',
             contents=prompt_usuario,
             config=types.GenerateContentConfig(
@@ -294,27 +331,30 @@ def redactar_contrato_legal(solicitud: SolicitudContratoLegal):
 def aprobar_y_enviar_contrato(datos: SolicitudAprobacionElena):
     cuerpo_mail = f"""
     <html>
-    <body style="font-family: Arial, sans-serif; color: #333;">
-        <div style="background-color: #0f172a; color: #ffffff; padding: 20px;">
-            <h2 style="color: #38bdf8;">BRUNILDA S.A.S. - Certificación Documental</h2>
-            <p>Dra. Elena Lara (CEO) | Dr. Julián López (Director Módulo Legal)</p>
+    <body style="font-family: Arial, sans-serif; color: #333; line-height: 1.6;">
+        <div style="background-color: #0f172a; color: #ffffff; padding: 20px; border-radius: 5px;">
+            <h2 style="color: #38bdf8; margin:0;">BRUNILDA S.A.S. - Certificación & Arquitectura Documental</h2>
+            <p style="margin:5px 0 0 0; color:#94a3b8;">Dra. Elena Lara (CEO) | Dr. Julián López (Director Módulo Legal)</p>
         </div>
-        <div style="padding: 20px; border: 1px solid #ccc; margin-top: 15px;">
+        <div style="padding: 20px; border: 1px solid #e2e8f0; margin-top: 15px; border-radius: 5px;">
             <p>Estimado/a <strong>{datos.nombre_abogado}</strong>,</p>
-            <p>Se valida el instrumento jurídico <strong>"{datos.titulo_documento}"</strong> (Case ID: {datos.case_id}).</p>
-            <pre style="background:#f8fafc; padding:15px; border-left:4px solid #22c55e;">{datos.texto_contrato_final}</pre>
+            <p>Se adjunta el borrador oficial solicitado correspondiente al expediente <strong>[{datos.case_id}]</strong>: <em>"{datos.titulo_documento}"</em>.</p>
+            <p>Puede seleccionar el siguiente texto y copiarlo directamente a Microsoft Word:</p>
+            <hr style="border:0; border-top:1px solid #e2e8f0; margin:15px 0;">
+            <div style="background:#f8fafc; padding:20px; border-left:4px solid #38bdf8; font-family: 'Courier New', Courier, monospace; white-space: pre-wrap;">{datos.texto_contrato_final}</div>
         </div>
+        <p style="font-size:0.8em; color:#64748b; margin-top:15px;">Documento generado bajo supervisión de Brunilda S.A.S. Su ejecución definitiva requiere firma y matriculación profesional.</p>
     </body>
     </html>
     """
     
     exito = enviar_correo_contrato(
         destinatario=datos.email_abogado_o_cliente,
-        asunto=f"[BRUNILDA S.A.S.] Documento Validado [{datos.case_id}]: {datos.titulo_documento}",
+        asunto=f"[BORRADOR EDITABLE - BRUNILDA S.A.S.] {datos.titulo_documento} [{datos.case_id}]",
         contenido_html=cuerpo_mail
     )
     
     if exito:
-        return {"status": "ok", "mensaje": "Mail enviado exitosamente"}
+        return {"status": "ok", "mensaje": "Borrador editable enviado exitosamente a tu casilla de correo."}
     else:
         return {"status": "warning", "mensaje": "No se pudo enviar el correo."}
