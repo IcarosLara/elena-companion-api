@@ -17,8 +17,8 @@ from google.genai import types
 # INICIALIZACIÓN PRINCIPAL DE FASTAPI
 # ---------------------------------------------------------
 app = FastAPI(
-    title="Brunilda S.A.S. - Super Motor Unificado v10.6",
-    description="Motor Legal Dr. Julián López - Restored Ultra-Fast Flow Engine"
+    title="Brunilda S.A.S. - Super Motor Unificado v10.8",
+    description="Motor Legal Dr. Julián López - Universal Encoding & Doc Fix"
 )
 
 # ---------------------------------------------------------
@@ -129,7 +129,7 @@ def generar_link_mp(plan: str):
     return None
 
 # ---------------------------------------------------------
-# INTERFAZ WEB ULTRA-LIGERA SIN BLOQUEOS DE SCRIPT
+# INTERFAZ WEB CON DESCARGA 100% COMPATIBLE
 # ---------------------------------------------------------
 @app.api_route("/", methods=["GET", "HEAD"], response_class=HTMLResponse)
 def home():
@@ -155,7 +155,8 @@ textarea {{ flex: 1; background: #0f172a; border: 1px solid #475569; color: #fff
 button {{ background: #22c55e; color: #000; font-weight: bold; border: none; border-radius: 6px; padding: 0 16px; cursor: pointer; }}
 .case-bar {{ background: #0f172a; padding: 8px 15px; border-bottom: 1px solid #334155; font-size: 0.8em; color: #94a3b8; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; align-items:center; }}
 .case-bar input {{ background: #1e293b; border: 1px solid #475569; color: #fff; padding: 4px 8px; border-radius: 4px; }}
-.btn-action {{ background: #38bdf8; color: #000; font-weight: bold; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-size: 0.85em; display: inline-block; margin-top: 5px; }}
+.btn-action {{ background: #38bdf8; color: #000; font-weight: bold; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-size: 0.85em; display: inline-block; margin: 4px 4px 0 0; }}
+.btn-action-alt {{ background: #22c55e; color: #000; font-weight: bold; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-size: 0.85em; display: inline-block; margin: 4px 4px 0 0; }}
 .btn-tester {{ background: #f59e0b; color: #000; font-weight: bold; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 0.75em; }}
 .sheet-link {{ background: #0284c7; color: #fff; text-decoration: none; padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 0.75em; display: inline-block; }}
 
@@ -315,7 +316,8 @@ async function enviarMensaje() {{
             let htmlResp = '<strong>📄 BORRADOR GENERADO [' + data.case_id + ']:</strong><br><br>' + 
                 '<div style="background:#0f172a; padding:10px; border-radius:5px; font-family:monospace; margin-bottom:10px;">' + ultimoBorradorTexto + '</div>' +
                 '<strong>⚠️ OBSERVACIONES DEL DR. JULIÁN LÓPEZ:</strong><br>' + (data.observaciones_legales_locales || 'Sin observaciones.') + '<br><br>' +
-                '<button class="btn-action" onclick="descargarTxtLimpio()">📥 Descargar Borrador Editable (.doc)</button>';
+                '<button class="btn-action" onclick="descargarWordHTML()">📄 Descargar para Word/GDocs (.doc)</button>' +
+                '<button class="btn-action-alt" onclick="descargarTxtInmune()">📝 Descargar Texto Limpio (.txt)</button>';
 
             julianDiv.innerHTML = htmlResp;
         }} else {{
@@ -327,12 +329,32 @@ async function enviarMensaje() {{
     chat.scrollTop = chat.scrollHeight;
 }}
 
-function descargarTxtLimpio() {{
+// 1. DESCARGA HTML COMPATIBLE WORD CON UTF-8 EXPLÍCITO (Solución para Docs y Word)
+function descargarWordHTML() {{
     if (!ultimoBorradorTexto) return;
-    const blob = new Blob(['\ufeff' + ultimoBorradorTexto], {{ type: 'application/msword;charset=utf-8' }});
+    
+    const htmlHeader = '<html xmlns:o="urn:schemas-microsoft-com:office:office" ' +
+        'xmlns:w="urn:schemas-microsoft-com:office:word" ' +
+        'xmlns="http://www.w3.org/TR/REC-html40">' +
+        '<head><meta charset="utf-8"><title>Borrador Legal</title>' +
+        '<style>body { font-family: Arial, sans-serif; font-size: 11pt; line-height: 1.5; }</style></head><body>' +
+        ultimoBorradorTexto.replace(/\\n/g, '<br>') +
+        '</body></html>';
+
+    const blob = new Blob(['\\ufeff' + htmlHeader], {{ type: 'application/msword;charset=utf-8' }});
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
     link.download = "Borrador_Legal_Julian.doc";
+    link.click();
+}}
+
+// 2. DESCARGA EN TEXTO PLANO UTF-8 (Imposible que falle o dé archivo dañado)
+function descargarTxtInmune() {{
+    if (!ultimoBorradorTexto) return;
+    const blob = new Blob(['\\ufeff' + ultimoBorradorTexto], {{ type: 'text/plain;charset=utf-8' }});
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = "Borrador_Legal_Julian.txt";
     link.click();
 }}
 
