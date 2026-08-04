@@ -2,12 +2,9 @@ import os
 import json
 import datetime
 import requests
-import smtplib
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
 
 from fastapi import FastAPI, HTTPException, Request
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, RedirectResponse, Response
 from pydantic import BaseModel, Field
 from typing import Dict, Any, Optional
 from google import genai
@@ -17,8 +14,8 @@ from google.genai import types
 # INICIALIZACIÓN PRINCIPAL DE FASTAPI
 # ---------------------------------------------------------
 app = FastAPI(
-    title="Brunilda S.A.S. - Super Motor Unificado v10.9",
-    description="Motor Legal Dr. Julián López - Fixed F-String Syntax & Universal Export"
+    title="Brunilda S.A.S. - Super Motor Unificado v11.0",
+    description="Motor Legal Dr. Julián López - Native Server Attachment Download"
 )
 
 # ---------------------------------------------------------
@@ -27,9 +24,6 @@ app = FastAPI(
 SPREADSHEET_ID = "1_9a1awPkwQrsLVua8XGH2QJdhbO78EZ12T8OKcxt7To"
 SPREADSHEET_URL = f"https://docs.google.com/spreadsheets/d/{SPREADSHEET_ID}/edit"
 WEB_APP_SHEET_URL = "https://script.google.com/macros/s/AKfycbwts5uDaU8PrmUD0ovExIfR2LblZuB2yKpJT8lM-8L1rJcYDEZIzzj7xU2ukP4-oxlC0w/exec"
-
-EMAIL_DRA_ELENA = "dra.elenalara.forense@gmail.com"
-EMAIL_ADMIN_JAVIER = "javieradrianlaraaracena@gmail.com"
 
 TOKEN_MP = os.environ.get("TOKEN_MP", "APP_USR-738297045866874-070402-5f178e96384dfbf05d797c448c7e97c6-3518229186")
 PAYPAL_GLOBAL_LINK = "https://www.paypal.com/invoice/p/#LGFK9KP2H6A55PQH"
@@ -53,6 +47,10 @@ class SolicitudContratoLegal(BaseModel):
     datos_partes: Dict[str, Any]
     idioma: str = "Español"
     observaciones_especiales: Optional[str] = None
+
+class DescargaRequest(BaseModel):
+    texto: str
+    formato: str  # 'doc' o 'txt'
 
 # ---------------------------------------------------------
 # PROMPTS DEL SISTEMA
@@ -129,7 +127,7 @@ def generar_link_mp(plan: str):
     return None
 
 # ---------------------------------------------------------
-# INTERFAZ WEB COMPATIBLE Y ROBUSTA
+# INTERFAZ WEB CON DESCARGA DESDE SERVIDOR
 # ---------------------------------------------------------
 @app.api_route("/", methods=["GET", "HEAD"], response_class=HTMLResponse)
 def home():
@@ -160,7 +158,6 @@ button {{ background: #22c55e; color: #000; font-weight: bold; border: none; bor
 .btn-tester {{ background: #f59e0b; color: #000; font-weight: bold; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 0.75em; }}
 .sheet-link {{ background: #0284c7; color: #fff; text-decoration: none; padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 0.75em; display: inline-block; }}
 
-/* TARJETAS DE PLANES DETALLADAS */
 .plans-overlay {{ display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.94); z-index: 1000; justify-content: center; align-items: center; padding: 15px; overflow-y: auto; }}
 .plans-card {{ background: #1e293b; padding: 20px; border-radius: 12px; border: 1px solid #f59e0b; max-width: 650px; width: 100%; max-height: 90vh; overflow-y: auto; text-align: left; }}
 .plan-item {{ background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 12px; margin-bottom: 12px; }}
@@ -203,50 +200,24 @@ button {{ background: #22c55e; color: #000; font-weight: bold; border: none; bor
 <div id="modalPlanes" class="plans-overlay">
     <div class="plans-card">
         <h3 style="color:#f59e0b; margin-top:0; text-align:center;">💳 Planes de Suscripción Mensual — Brunilda S.A.S.</h3>
-        <p style="font-size:0.85em; color:#cbd5e1; text-align:center; margin-bottom:15px;">
-            Acceda a la suite inteligente para estudios jurídicos, docentes y estudiantes:
-        </p>
-
         <div class="plan-item">
             <h4><span>1. Plan Básico</span> <span class="plan-price">$6.000 ARS/mes</span></h4>
-            <p style="font-size:0.8em; color:#94a3b8; margin:2px 0;">Permite seleccionar <strong>1 SOLO SERVICIO</strong>:</p>
-            <ul>
-                <li><strong>a)</strong> Perfilación personalizada de la Dra. Elena Lara.</li>
-                <li><strong>b)</strong> 1 de los 5 servicios de <em>Elena Care</em> (Monitoreo, Alertas, Acompañamiento, Registro o Soporte).</li>
-                <li><strong>c)</strong> Asistencia Legal con el Dr. Julián López (Módulo Legal).</li>
-            </ul>
             <a href="/pagar/BASICO" class="btn-pay">Contratar Plan Básico ($6.000)</a>
         </div>
-
         <div class="plan-item">
             <h4><span>2. Plan Dúo</span> <span class="plan-price">$12.000 ARS/mes</span></h4>
-            <p style="font-size:0.8em; color:#94a3b8; margin:2px 0;">Permite seleccionar <strong>2 SERVICIOS COMBINADOS</strong>:</p>
-            <ul>
-                <li>Ejemplo 1: Perfilación Personalizada + Servicio Legal con Julián López.</li>
-                <li>Ejemplo 2: Selección de 2 de los 5 servicios integrales de <em>Elena Care</em>.</li>
-            </ul>
             <a href="/pagar/DUO" class="btn-pay">Contratar Plan Dúo ($12.000)</a>
         </div>
-
         <div class="plan-item" style="border-color:#f59e0b;">
             <h4><span>3. Plan Premium Full</span> <span class="plan-price">$18.000 ARS/mes</span></h4>
-            <p style="font-size:0.8em; color:#94a3b8; margin:2px 0;"><strong>INCLUYE TODO EL PAQUETE COMPLETO:</strong></p>
-            <ul>
-                <li>Módulo Legal Dr. Julián López sin límites.</li>
-                <li>Perfilación Personalizada de la Dra. Elena Lara.</li>
-                <li>Los 5 servicios integrales de <em>Elena Care</em> activos.</li>
-            </ul>
             <a href="/pagar/PREMIUM" class="btn-pay" style="background:#f59e0b;">Contratar Premium Full ($18.000)</a>
         </div>
-
         <div class="plan-item" style="border-color:#38bdf8;">
             <h4><span>4. Pago Internacional (PayPal)</span> <span class="plan-price" style="color:#38bdf8;">$15 USD/mes</span></h4>
-            <p style="font-size:0.8em; color:#94a3b8; margin:2px 0;">Acceso Premium Suite Completo para usuarios fuera de Argentina.</p>
             <a href="{PAYPAL_GLOBAL_LINK}" target="_blank" class="btn-pay" style="background:#38bdf8; color:#000;">Pagar con PayPal ($15 USD)</a>
         </div>
-
         <div style="text-align:center; margin-top:10px;">
-            <button onclick="cerrarPlanes()" style="background:transparent; color:#94a3b8; border:none; cursor:pointer; font-size:0.85em;">Volver a la interfaz ↩️</button>
+            <button onclick="cerrarPlanes()" style="background:transparent; color:#94a3b8; border:none; cursor:pointer; font-size:0.85em;">Volver ↩️</button>
         </div>
     </div>
 </div>
@@ -316,8 +287,8 @@ async function enviarMensaje() {{
             let htmlResp = '<strong>📄 BORRADOR GENERADO [' + data.case_id + ']:</strong><br><br>' + 
                 '<div style="background:#0f172a; padding:10px; border-radius:5px; font-family:monospace; margin-bottom:10px;">' + ultimoBorradorTexto + '</div>' +
                 '<strong>⚠️ OBSERVACIONES DEL DR. JULIÁN LÓPEZ:</strong><br>' + (data.observaciones_legales_locales || 'Sin observaciones.') + '<br><br>' +
-                '<button class="btn-action" onclick="descargarWordHTML()">📄 Descargar Borrador (.doc)</button>' +
-                '<button class="btn-action-alt" onclick="descargarTxtInmune()">📝 Descargar Texto (.txt)</button>';
+                '<button class="btn-action" onclick="descargarDesdeServidor(\'doc\')">📄 Descargar Borrador Documento (.doc/.html)</button>' +
+                '<button class="btn-action-alt" onclick="descargarDesdeServidor(\'txt\')">📝 Descargar Texto Plano (.txt)</button>';
 
             julianDiv.innerHTML = htmlResp;
         }} else {{
@@ -329,36 +300,38 @@ async function enviarMensaje() {{
     chat.scrollTop = chat.scrollHeight;
 }}
 
-function descargarWordHTML() {{
+// DESCARGA DIRECTA DESDE EL SERVIDOR API
+async function descargarDesdeServidor(formato) {{
     if (!ultimoBorradorTexto) return;
-    
-    const htmlHeader = '<!DOCTYPE html><html><head><meta charset="utf-8"><title>Borrador Legal</title></head><body>' +
-        ultimoBorradorTexto.replace(/\\n/g, '<br>') +
-        '</body></html>';
 
-    const blob = new Blob(['\\ufeff' + htmlHeader], {{ type: 'application/msword;charset=utf-8' }});
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.download = "Borrador_Legal_Julian.doc";
-    link.click();
+    try {{
+        const response = await fetch('/descargar-archivo', {{
+            method: 'POST',
+            headers: {{ 'Content-Type': 'application/json' }},
+            body: JSON.stringify({{
+                texto: ultimoBorradorTexto,
+                formato: formato
+            }})
+        }});
+
+        if (!response.ok) throw new Error("Error en servidor");
+
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = formato === 'doc' ? 'Borrador_Legal_Julian.doc' : 'Borrador_Legal_Julian.txt';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+    }} catch (err) {{
+        alert("Error al descargar archivo: " + err.message);
+    }}
 }}
 
-function descargarTxtInmune() {{
-    if (!ultimoBorradorTexto) return;
-    const blob = new Blob(['\\ufeff' + ultimoBorradorTexto], {{ type: 'text/plain;charset=utf-8' }});
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.download = "Borrador_Legal_Julian.txt";
-    link.click();
-}}
-
-function abrirPlanes() {{
-    document.getElementById('modalPlanes').style.display = 'flex';
-}}
-
-function cerrarPlanes() {{
-    document.getElementById('modalPlanes').style.display = 'none';
-}}
+function abrirPlanes() {{ document.getElementById('modalPlanes').style.display = 'flex'; }}
+function cerrarPlanes() {{ document.getElementById('modalPlanes').style.display = 'none'; }}
 
 window.onload = verificarIdentidad;
 </script>
@@ -367,8 +340,48 @@ window.onload = verificarIdentidad;
 </html>"""
 
 # ---------------------------------------------------------
-# ENDPOINTS OPERATIVOS Y MERCADO PAGO
+# ENDPOINTS OPERATIVOS Y DESCARGA NATIVA
 # ---------------------------------------------------------
+@app.post("/descargar-archivo")
+def descargar_archivo(req: DescargaRequest):
+    """Genera descargas directas servidas desde la API con UTF-8 estricto"""
+    texto_utf8 = "\ufeff" + req.texto  # BOM para compatibilidad universal de acentos
+
+    if req.formato == "doc":
+        # Formato HTML estándar que Microsoft Word y Google Docs importan limpiamente
+        contenido_doc = f"""<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Borrador Legal - Brunilda S.A.S.</title>
+<style>
+body {{ font-family: 'Calibri', 'Arial', sans-serif; font-size: 11pt; line-height: 1.5; color: #000000; margin: 2cm; }}
+p {{ margin-bottom: 10pt; }}
+</style>
+</head>
+<body>
+{req.texto.replace('\n', '<br>')}
+</body>
+</html>"""
+        body_bytes = ("\ufeff" + contenido_doc).encode('utf-8')
+        return Response(
+            content=body_bytes,
+            media_type="application/msword; charset=utf-8",
+            headers={
+                "Content-Disposition": "attachment; filename=Borrador_Legal_Julian.doc"
+            }
+        )
+
+    else:
+        # Texto plano UTF-8 descargable físicamente en celular
+        return Response(
+            content=texto_utf8.encode('utf-8'),
+            media_type="text/plain; charset=utf-8",
+            headers={
+                "Content-Disposition": "attachment; filename=Borrador_Legal_Julian.txt"
+            }
+        )
+
 @app.get("/planes")
 def obtener_planes():
     return {
@@ -397,7 +410,6 @@ def redactar_contrato_legal(solicitud: SolicitudContratoLegal):
     if not c:
         raise HTTPException(status_code=500, detail="GEMINI_API_KEY no configurada.")
     
-    # Registro inmutable en tu Google Sheet Maestro
     registrar_en_google_sheet(solicitud.case_id, solicitud.abogado_nombre, solicitud.tipo_contrato)
 
     prompt_usuario = (
