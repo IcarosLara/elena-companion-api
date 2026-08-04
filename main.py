@@ -17,8 +17,8 @@ from google.genai import types
 # INICIALIZACIÓN PRINCIPAL DE FASTAPI
 # ---------------------------------------------------------
 app = FastAPI(
-    title="Brunilda S.A.S. - Super Motor Unificado v10.5",
-    description="Motor Legal Dr. Julián López - Native Word Document Export Fix"
+    title="Brunilda S.A.S. - Super Motor Unificado v10.6",
+    description="Motor Legal Dr. Julián López - Restored Ultra-Fast Flow Engine"
 )
 
 # ---------------------------------------------------------
@@ -129,7 +129,7 @@ def generar_link_mp(plan: str):
     return None
 
 # ---------------------------------------------------------
-# INTERFAZ WEB CON DESCARGA NATIVA WORD (.DOC / UTF-8)
+# INTERFAZ WEB ULTRA-LIGERA SIN BLOQUEOS DE SCRIPT
 # ---------------------------------------------------------
 @app.api_route("/", methods=["GET", "HEAD"], response_class=HTMLResponse)
 def home():
@@ -203,15 +203,15 @@ button {{ background: #22c55e; color: #000; font-weight: bold; border: none; bor
     <div class="plans-card">
         <h3 style="color:#f59e0b; margin-top:0; text-align:center;">💳 Planes de Suscripción Mensual — Brunilda S.A.S.</h3>
         <p style="font-size:0.85em; color:#cbd5e1; text-align:center; margin-bottom:15px;">
-            Acceda a la suite inteligente para estudios jurídicos, docentes y estudiantes. Seleccione el plan que mejor se adapte a sus necesidades:
+            Acceda a la suite inteligente para estudios jurídicos, docentes y estudiantes:
         </p>
 
         <div class="plan-item">
             <h4><span>1. Plan Básico</span> <span class="plan-price">$6.000 ARS/mes</span></h4>
-            <p style="font-size:0.8em; color:#94a3b8; margin:2px 0;">Permite seleccionar <strong>1 SOLO SERVICIO</strong> entre las siguientes opciones:</p>
+            <p style="font-size:0.8em; color:#94a3b8; margin:2px 0;">Permite seleccionar <strong>1 SOLO SERVICIO</strong>:</p>
             <ul>
                 <li><strong>a)</strong> Perfilación personalizada de la Dra. Elena Lara.</li>
-                <li><strong>b)</strong> 1 de los 5 servicios de <em>Elena Care</em> (Monitoreo, Alertas, Acompañamiento, Registro de Evolución o Soporte de Rutina).</li>
+                <li><strong>b)</strong> 1 de los 5 servicios de <em>Elena Care</em> (Monitoreo, Alertas, Acompañamiento, Registro o Soporte).</li>
                 <li><strong>c)</strong> Asistencia Legal con el Dr. Julián López (Módulo Legal).</li>
             </ul>
             <a href="/pagar/BASICO" class="btn-pay">Contratar Plan Básico ($6.000)</a>
@@ -252,7 +252,6 @@ button {{ background: #22c55e; color: #000; font-weight: bold; border: none; bor
 
 <script>
 let ultimoBorradorTexto = "";
-let ultimoTituloDoc = "Borrador_Legal";
 
 function verificarIdentidad() {{
     const nombre = document.getElementById('abogadoNombre').value.trim().toLowerCase();
@@ -312,12 +311,11 @@ async function enviarMensaje() {{
         const data = await response.json();
         if (data.texto_contrato_borrador) {{
             ultimoBorradorTexto = data.texto_contrato_borrador;
-            ultimoTituloDoc = (data.titulo_documento || "Borrador_Legal").replace(/\s+/g, '_');
             
-            let htmlResp = `<strong>📄 BORRADOR GENERADO [${{data.case_id}}]:</strong><br><br>` + 
-                `<div style="background:#0f172a; padding:10px; border-radius:5px; font-family:monospace; margin-bottom:10px;">${{ultimoBorradorTexto}}</div>` +
-                `<strong>⚠️ OBSERVACIONES DEL DR. JULIÁN LÓPEZ:</strong><br>${{data.observaciones_legales_locales || 'Sin observaciones.'}}<br><br>` +
-                `<button class="btn-action" onclick="descargarBorradorWordNativo()">📥 Descargar Documento Word Editable (.doc)</button>`;
+            let htmlResp = '<strong>📄 BORRADOR GENERADO [' + data.case_id + ']:</strong><br><br>' + 
+                '<div style="background:#0f172a; padding:10px; border-radius:5px; font-family:monospace; margin-bottom:10px;">' + ultimoBorradorTexto + '</div>' +
+                '<strong>⚠️ OBSERVACIONES DEL DR. JULIÁN LÓPEZ:</strong><br>' + (data.observaciones_legales_locales || 'Sin observaciones.') + '<br><br>' +
+                '<button class="btn-action" onclick="descargarTxtLimpio()">📥 Descargar Borrador Editable (.doc)</button>';
 
             julianDiv.innerHTML = htmlResp;
         }} else {{
@@ -329,33 +327,12 @@ async function enviarMensaje() {{
     chat.scrollTop = chat.scrollHeight;
 }}
 
-function descargarBorradorWordNativo() {{
+function descargarTxtLimpio() {{
     if (!ultimoBorradorTexto) return;
-    
-    // HTML formateado para Word con soporte UTF-8 BOM
-    const contenidoHTML = `
-        <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
-        <head>
-            <meta charset='utf-8'>
-            <title>${{ultimoTituloDoc}}</title>
-            <style>
-                body {{ font-family: 'Calibri', 'Segoe UI', Arial, sans-serif; font-size: 11pt; line-height: 1.5; text-align: justify; padding: 2cm; }}
-                h1 {{ font-size: 14pt; font-weight: bold; text-align: center; color: #000; text-transform: uppercase; }}
-                p {{ margin-bottom: 12pt; }}
-                .foot-note {{ font-size: 8pt; color: #555; border-top: 1px solid #ccc; padding-top: 10px; margin-top: 30px; text-align: center; }}
-            </style>
-        </head>
-        <body>
-            <div>${{ultimoBorradorTexto.replace(/\n/g, '<br>')}}</div>
-        </body>
-        </html>
-    `;
-
-    // \uFEFF fuerza el Byte Order Mark (BOM) UTF-8 para evitar caracteres rotos (UTF-8 en Word)
-    const blob = new Blob(['\ufeff', contenidoHTML], {{ type: 'application/msword;charset=utf-8' }});
+    const blob = new Blob(['\ufeff' + ultimoBorradorTexto], {{ type: 'application/msword;charset=utf-8' }});
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
-    link.download = `${{ultimoTituloDoc}}.doc`;
+    link.download = "Borrador_Legal_Julian.doc";
     link.click();
 }}
 
