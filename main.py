@@ -5,8 +5,6 @@ import requests
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-from email.mime.base import MIMEBase
-from email import encoders
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
@@ -19,8 +17,8 @@ from google.genai import types
 # INICIALIZACIÓN PRINCIPAL DE FASTAPI
 # ---------------------------------------------------------
 app = FastAPI(
-    title="Brunilda S.A.S. - Super Motor Unificado v9.0",
-    description="Motor Legal Dr. Julián López - Doom Engine & Editable Attachment Flow"
+    title="Brunilda S.A.S. - Super Motor Unificado v9.5",
+    description="Motor Legal Dr. Julián López - Direct Download & God Mode Fix"
 )
 
 # ---------------------------------------------------------
@@ -62,13 +60,6 @@ class SolicitudContratoLegal(BaseModel):
     idioma: str = "Español"
     observaciones_especiales: Optional[str] = None
 
-class SolicitudAprobacionElena(BaseModel):
-    case_id: str = Field(default="CASO-GENERAL", description="ID de caso único")
-    titulo_documento: str
-    texto_contrato_final: str
-    email_abogado_o_cliente: str
-    nombre_abogado: str
-
 # ---------------------------------------------------------
 # PROMPTS DEL SISTEMA
 # ---------------------------------------------------------
@@ -97,7 +88,7 @@ DIRECTIVAS DE SALIDA JSON OBLIGATORIO:
 """
 
 # ---------------------------------------------------------
-# FUNCIONES AUXILIARES (ENVÍO CON ARCHIVO ADJUNTO TXT/DOC)
+# FUNCIONES AUXILIARES
 # ---------------------------------------------------------
 def registrar_en_google_sheet(case_id: str, abogado: str, consulta: str):
     """Envía la métrica de uso a tu Google Sheet Maestro en tiempo real"""
@@ -111,35 +102,6 @@ def registrar_en_google_sheet(case_id: str, abogado: str, consulta: str):
         requests.post(WEB_APP_SHEET_URL, json=payload, timeout=3)
     except Exception as e:
         print(f"⚠️ [ERROR TRACKING SHEET]: {e}")
-
-def enviar_correo_con_adjunto(destinatario: str, asunto: str, contenido_html: str, texto_borrador: str, case_id: str):
-    pass_clean = SMTP_PASS.replace(" ", "").strip()
-    try:
-        msg = MIMEMultipart()
-        msg["Subject"] = asunto
-        msg["From"] = f"Dra. Elena Lara <{EMAIL_DRA_ELENA}>"
-        msg["To"] = destinatario
-
-        # Cuerpo en HTML
-        msg.attach(MIMEText(contenido_html, "html", "utf-8"))
-
-        # Generación del archivo adjunto editable .txt
-        nombre_archivo = f"BORRADOR_EDITABLE_{case_id}.txt"
-        adjunto = MIMEBase('application', 'octet-stream')
-        adjunto.set_payload(texto_borrador.encode('utf-8'))
-        encoders.encode_base64(adjunto)
-        adjunto.add_header('Content-Disposition', f'attachment; filename="{nombre_archivo}"')
-        msg.attach(adjunto)
-
-        server = smtplib.SMTP(SMTP_SERVER, SMTP_PORT)
-        server.starttls()
-        server.login(SMTP_USER_ELENA, pass_clean)
-        server.sendmail(EMAIL_DRA_ELENA, destinatario, msg.as_string())
-        server.quit()
-        return True
-    except Exception as e:
-        print(f"⚠️ [ERROR ENVIO MAIL CON ADJUNTO]: {e}")
-        return False
 
 def generar_link_mp(plan: str):
     precios = {
@@ -176,7 +138,7 @@ def generar_link_mp(plan: str):
     return None
 
 # ---------------------------------------------------------
-# INTERFAZ WEB ULTRA-LIGERA (DOOM ENGINE FOR MOBILE 4G/2G)
+# INTERFAZ WEB ULTRA-LIGERA
 # ---------------------------------------------------------
 @app.api_route("/", methods=["GET", "HEAD"], response_class=HTMLResponse)
 def home():
@@ -200,9 +162,11 @@ body {{ font-family: system-ui, -apple-system, sans-serif; background: #0f172a; 
 .input-row {{ display: flex; gap: 8px; }}
 textarea {{ flex: 1; background: #0f172a; border: 1px solid #475569; color: #fff; border-radius: 6px; padding: 8px; resize: none; height: 48px; font-size: 16px; }}
 button {{ background: #22c55e; color: #000; font-weight: bold; border: none; border-radius: 6px; padding: 0 16px; cursor: pointer; }}
-.case-bar {{ background: #0f172a; padding: 8px 15px; border-bottom: 1px solid #334155; font-size: 0.8em; color: #94a3b8; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }}
-.case-bar input {{ background: #1e293b; border: 1px solid #475569; color: #fff; padding: 3px 6px; border-radius: 4px; }}
-.sheet-link {{ background: #0284c7; color: #fff; text-decoration: none; padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 0.8em; display: inline-block; margin-top: 5px; }}
+.case-bar {{ background: #0f172a; padding: 8px 15px; border-bottom: 1px solid #334155; font-size: 0.8em; color: #94a3b8; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; align-items:center; }}
+.case-bar input {{ background: #1e293b; border: 1px solid #475569; color: #fff; padding: 4px 8px; border-radius: 4px; }}
+.btn-action {{ background: #38bdf8; color: #000; font-weight: bold; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-size: 0.85em; display: inline-block; margin-top: 5px; }}
+.btn-tester {{ background: #f59e0b; color: #000; font-weight: bold; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 0.75em; }}
+.sheet-link {{ background: #0284c7; color: #fff; text-decoration: none; padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 0.75em; display: inline-block; }}
 .plans-overlay {{ display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.92); z-index: 1000; justify-content: center; align-items: center; padding: 15px; }}
 .plans-card {{ background: #1e293b; padding: 20px; border-radius: 10px; border: 1px solid #f59e0b; text-align: center; max-width: 500px; width: 100%; }}
 .btn-pay {{ background: #22c55e; color: #000; text-decoration: none; padding: 10px 15px; display: block; border-radius: 5px; font-weight: bold; margin: 8px 0; }}
@@ -219,7 +183,9 @@ button {{ background: #22c55e; color: #000; font-weight: bold; border: none; bor
     <span>Expediente:</span>
     <input type="text" id="caseId" value="CASO-DEMO">
     <span>Abogado/Operador:</span>
-    <input type="text" id="abogadoNombre" placeholder="Tu Nombre">
+    <input type="text" id="abogadoNombre" value="Javier Lara" oninput="verificarIdentidad()">
+    <button class="btn-tester" onclick="abrirPlanes()">🧪 Testear Pasarela (Planes)</button>
+    <a href="{SPREADSHEET_URL}" target="_blank" id="rootSheetBtn" class="sheet-link" style="display:inline-block;">📊 Sheets Maestro</a>
 </div>
 
 <div class="chat-container" id="chat">
@@ -231,36 +197,46 @@ button {{ background: #22c55e; color: #000; font-weight: bold; border: none; bor
 
 <div class="input-panel">
     <div class="input-row">
-        <textarea id="promptText" placeholder="Escribe tu instrucción legal aquí..."></textarea>
+        <textarea id="promptText" placeholder="Ej: Redactar una convención matrimonial de separación de bienes prenuptial..."></textarea>
         <button id="btnEnviar" onclick="enviarMensaje()">Enviar 🚀</button>
     </div>
 </div>
 
 <div id="modalPlanes" class="plans-overlay">
     <div class="plans-card">
-        <h3 style="color:#f59e0b; margin-top:0;">⚡ Borrador Despachado & Certificado</h3>
-        <p style="font-size:0.88em; color:#cbd5e1;">El borrador editable ha sido enviado a tu casilla de correo. Para mantener la suite operativa y certificar nuevos expedientes, selecciona tu plan:</p>
+        <h3 style="color:#f59e0b; margin-top:0;">💳 Pasarela Comercial Brunilda S.A.S.</h3>
+        <p style="font-size:0.88em; color:#cbd5e1;">Seleccione el plan de suscripción mensual para continuar utilizando el módulo legal:</p>
         <a href="/pagar/UNICO" class="btn-pay">Suscribirse Plan Único ($6.000 ARS/mes)</a>
         <a href="/pagar/DUO" class="btn-pay">Suscribirse Plan Dúo ($12.000 ARS/mes)</a>
         <a href="{PAYPAL_GLOBAL_LINK}" target="_blank" class="btn-pay" style="background:#f59e0b;">Pago Global PayPal ($15 USD)</a>
-        <button onclick="cerrarPlanes()" style="background:transparent; color:#94a3b8; border:none; margin-top:10px; cursor:pointer;">Continuar en Modo Prueba ↩️</button>
+        <button onclick="cerrarPlanes()" style="background:transparent; color:#94a3b8; border:none; margin-top:10px; cursor:pointer;">Cerrar Pantalla de Prueba ↩️</button>
     </div>
 </div>
 
 <script>
 let ultimoBorradorTexto = "";
+let ultimoTituloDoc = "Borrador_Legal";
 
-function verificarIdentidadInicial() {{
+function verificarIdentidad() {{
     const nombre = document.getElementById('abogadoNombre').value.trim().toLowerCase();
+    const badge = document.getElementById('modeBadge');
+    const sheetBtn = document.getElementById('rootSheetBtn');
+    
     if (nombre.includes("javier") || nombre.includes("lara")) {{
-        document.getElementById('modeBadge').innerText = "👑 MODO ARQUITECTO (ROOT)";
-        document.getElementById('modeBadge').style.borderColor = "#f59e0b";
-        document.getElementById('modeBadge').style.color = "#f59e0b";
+        badge.innerText = "👑 MODO ARQUITECTO (ROOT)";
+        badge.style.borderColor = "#f59e0b";
+        badge.style.color = "#f59e0b";
+        sheetBtn.style.display = "inline-block";
+    }} else {{
+        badge.innerText = "🟢 Usuario Habilitado";
+        badge.style.borderColor = "#16a34a";
+        badge.style.color = "#22c55e";
+        sheetBtn.style.display = "none";
     }}
 }}
 
 async function enviarMensaje() {{
-    verificarIdentidadInicial();
+    verificarIdentidad();
     const input = document.getElementById('promptText');
     const text = input.value.trim();
     if (!text) return;
@@ -299,16 +275,12 @@ async function enviarMensaje() {{
         const data = await response.json();
         if (data.texto_contrato_borrador) {{
             ultimoBorradorTexto = data.texto_contrato_borrador;
-            const tituloDoc = data.titulo_documento || "Borrador Legal";
+            ultimoTituloDoc = (data.titulo_documento || "Borrador_Legal").replace(/\s+/g, '_');
             
             let htmlResp = `<strong>📄 BORRADOR GENERADO [${{data.case_id}}]:</strong><br><br>` + 
                 `<div style="background:#0f172a; padding:10px; border-radius:5px; font-family:monospace; margin-bottom:10px;">${{ultimoBorradorTexto}}</div>` +
                 `<strong>⚠️ OBSERVACIONES DEL DR. JULIÁN LÓPEZ:</strong><br>${{data.observaciones_legales_locales || 'Sin observaciones.'}}<br><br>` +
-                `<button style="background:#38bdf8; color:#000; font-weight:bold; border:none; padding:8px 12px; border-radius:4px; cursor:pointer;" onclick="solicitarEnvioMail('${{data.case_id}}', '${{tituloDoc}}')">✉️ Enviar Adjunto Editable (.txt) a mi Mail</button>`;
-            
-            if (abogadoNombre.toLowerCase().includes("javier") || abogadoNombre.toLowerCase().includes("lara")) {{
-                htmlResp += `<br><a href="{SPREADSHEET_URL}" target="_blank" class="sheet-link">📊 Ver Registro Inmutable en Google Sheets (Root)</a>`;
-            }}
+                `<button class="btn-action" onclick="descargarBorradorDirecto()">📥 Descargar Borrador Editable (.txt)</button>`;
 
             julianDiv.innerHTML = htmlResp;
         }} else {{
@@ -320,35 +292,29 @@ async function enviarMensaje() {{
     chat.scrollTop = chat.scrollHeight;
 }}
 
-async function solicitarEnvioMail(caseId, titulo) {{
-    const email = prompt("Ingrese su casilla de correo para recibir el archivo adjunto editable:");
-    const abogado = document.getElementById('abogadoNombre').value || "Abogado Revisor";
-    if (!email) return;
+function descargarBorradorDirecto() {{
+    if (!ultimoBorradorTexto) return;
+    const blob = new Blob([ultimoBorradorTexto], {{ type: "text/plain;charset=utf-8" }});
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = `${{ultimoTituloDoc}}.txt`;
+    link.click();
+    
+    // Abre automáticamente la pasarela comercial después de descargar
+    setTimeout(() => {{
+        abrirPlanes();
+    }}, 1200);
+}}
 
-    try {{
-        const res = await fetch('/legal/aprobar-y-enviar', {{
-            method: 'POST',
-            headers: {{ 'Content-Type': 'application/json' }},
-            body: JSON.stringify({{
-                case_id: caseId,
-                titulo_documento: titulo,
-                texto_contrato_final: ultimoBorradorTexto,
-                email_abogado_o_cliente: email,
-                nombre_abogado: abogado
-            }})
-        }});
-        const data = await res.json();
-        alert("✉️ " + data.mensaje);
-        // Despliegue de selección comercial de planes tras el envío
-        document.getElementById('modalPlanes').style.display = 'flex';
-    }} catch (e) {{
-        alert("❌ Error al enviar el correo: " + e.message);
-    }}
+function abrirPlanes() {{
+    document.getElementById('modalPlanes').style.display = 'flex';
 }}
 
 function cerrarPlanes() {{
     document.getElementById('modalPlanes').style.display = 'none';
 }}
+
+window.onload = verificarIdentidad;
 </script>
 
 </body>
@@ -409,36 +375,4 @@ def redactar_contrato_legal(solicitud: SolicitudContratoLegal):
         return json.loads(response.text)
     except Exception as e:
         print(f"⚠️ [ERROR GEMINI CORE]: {e}")
-        raise HTTPException(status_code=500, detail=f"Error en Julián: {str(e)}")
-
-@app.post("/legal/aprobar-y-enviar")
-def aprobar_y_enviar_contrato(datos: SolicitudAprobacionElena):
-    cuerpo_mail = f"""
-    <html>
-    <body style="font-family: Arial, sans-serif; color: #333; line-height: 1.6;">
-        <div style="background-color: #0f172a; color: #ffffff; padding: 20px; border-radius: 5px;">
-            <h2 style="color: #38bdf8; margin:0;">BRUNILDA S.A.S. - Certificación & Arquitectura Documental</h2>
-            <p style="margin:5px 0 0 0; color:#94a3b8;">Dra. Elena Lara (CEO) | Dr. Julián López (Director Módulo Legal)</p>
-        </div>
-        <div style="padding: 20px; border: 1px solid #e2e8f0; margin-top: 15px; border-radius: 5px;">
-            <p>Estimado/a <strong>{datos.nombre_abogado}</strong>,</p>
-            <p>Se adjunta el archivo borrador editable en formato digital correspondiente al expediente <strong>[{datos.case_id}]</strong>: <em>"{datos.titulo_documento}"</em>.</p>
-            <p>Encontrará el archivo <strong>.txt / editable adjunto</strong> en este correo para su revisión y firma.</p>
-        </div>
-        <p style="font-size:0.8em; color:#64748b; margin-top:15px;">Documento generado bajo supervisión de Brunilda S.A.S. Su ejecución definitiva requiere firma y matriculación profesional.</p>
-    </body>
-    </html>
-    """
-    
-    exito = enviar_correo_con_adjunto(
-        destinatario=datos.email_abogado_o_cliente,
-        asunto=f"[BORRADOR EDITABLE ADJUNTO - BRUNILDA S.A.S.] {datos.titulo_documento} [{datos.case_id}]",
-        contenido_html=cuerpo_mail,
-        texto_borrador=datos.texto_contrato_final,
-        case_id=datos.case_id
-    )
-    
-    if exito:
-        return {"status": "ok", "mensaje": "Borrador editable adjuntado y enviado exitosamente a tu casilla."}
-    else:
-        return {"status": "warning", "mensaje": "No se pudo enviar el correo."}
+        raise HTTPException(status_code=500, detail=f"Error en Julián: {str(e)}") 
