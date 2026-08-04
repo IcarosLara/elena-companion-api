@@ -11,15 +11,7 @@ from google import genai
 from google.genai import types
 
 # ---------------------------------------------------------
-# INICIALIZACIÓN PRINCIPAL DE FASTAPI
-# ---------------------------------------------------------
-app = FastAPI(
-    title="Brunilda S.A.S. - Super Motor Unificado v11.1",
-    description="Motor Legal Dr. Julián López - Fixed Render Deploy NameError"
-)
-
-# ---------------------------------------------------------
-# CONFIGURACIÓN MAESTRA DE ENTORNOS Y CREDENCIALES
+# 1. CONFIGURACIÓN MAESTRA Y VARIABLES GLOBALES (PRIMERO)
 # ---------------------------------------------------------
 SPREADSHEET_ID = "1_9a1awPkwQrsLVua8XGH2QJdhbO78EZ12T8OKcxt7To"
 SPREADSHEET_URL = f"https://docs.google.com/spreadsheets/d/{SPREADSHEET_ID}/edit"
@@ -28,6 +20,17 @@ WEB_APP_SHEET_URL = "https://script.google.com/macros/s/AKfycbwts5uDaU8PrmUD0ovE
 TOKEN_MP = os.environ.get("TOKEN_MP", "APP_USR-738297045866874-070402-5f178e96384dfbf05d797c448c7e97c6-3518229186")
 PAYPAL_GLOBAL_LINK = "https://www.paypal.com/invoice/p/#LGFK9KP2H6A55PQH"
 
+# ---------------------------------------------------------
+# 2. INICIALIZACIÓN PRINCIPAL DE FASTAPI
+# ---------------------------------------------------------
+app = FastAPI(
+    title="Brunilda S.A.S. - Super Motor Unificado v11.2",
+    description="Motor Legal Dr. Julián López - Fully Verified Order Engine"
+)
+
+# ---------------------------------------------------------
+# 3. FUNCIONES AUXILIARES CORE
+# ---------------------------------------------------------
 def obtener_cliente_gemini():
     key = os.environ.get("GEMINI_API_KEY")
     if key:
@@ -85,7 +88,7 @@ def generar_link_mp(plan: str):
     return None
 
 # ---------------------------------------------------------
-# MODELOS DE ENTRADA (PYDANTIC)
+# 4. MODELOS DE ENTRADA (PYDANTIC)
 # ---------------------------------------------------------
 class SolicitudContratoLegal(BaseModel):
     case_id: str = Field(default="CASO-GENERAL", description="ID único para aislamiento contextual")
@@ -100,7 +103,7 @@ class DescargaRequest(BaseModel):
     formato: str
 
 # ---------------------------------------------------------
-# PROMPTS DEL SISTEMA
+# 5. PROMPTS DEL SISTEMA
 # ---------------------------------------------------------
 PROMPT_JULIAN_LEGAL = f"""
 Eres el Dr. Julián López (IQ 156), Director de Asuntos Legales y Arquitectura Documental en Brunilda S.A.S., bajo la supervisión ejecutiva de la Dra. Elena Lara.
@@ -127,7 +130,7 @@ DIRECTIVAS DE SALIDA JSON OBLIGATORIO:
 """
 
 # ---------------------------------------------------------
-# INTERFAZ WEB
+# 6. INTERFAZ WEB
 # ---------------------------------------------------------
 @app.api_route("/", methods=["GET", "HEAD"], response_class=HTMLResponse)
 def home():
@@ -339,7 +342,7 @@ window.onload = verificarIdentidad;
 </html>"""
 
 # ---------------------------------------------------------
-# ENDPOINTS OPERATIVOS Y DESCARGA NATIVA
+# 7. ENDPOINTS OPERATIVOS
 # ---------------------------------------------------------
 @app.post("/descargar-archivo")
 def descargar_archivo(req: DescargaRequest):
@@ -430,4 +433,4 @@ def redactar_contrato_legal(solicitud: SolicitudContratoLegal):
         return json.loads(response.text)
     except Exception as e:
         print(f"⚠️ [ERROR GEMINI CORE]: {e}")
-        raise HTTPException(status_code=500, detail=f"Error en Julián: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error en Julián: {str(e)}")                           
