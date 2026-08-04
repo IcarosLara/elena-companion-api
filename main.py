@@ -11,7 +11,7 @@ from google import genai
 from google.genai import types
 
 # ---------------------------------------------------------
-# 1. CONFIGURACIÓN MAESTRA Y VARIABLES GLOBALES (PRIMERO)
+# 1. CONFIGURACIÓN MAESTRA Y VARIABLES GLOBALES
 # ---------------------------------------------------------
 SPREADSHEET_ID = "1_9a1awPkwQrsLVua8XGH2QJdhbO78EZ12T8OKcxt7To"
 SPREADSHEET_URL = f"https://docs.google.com/spreadsheets/d/{SPREADSHEET_ID}/edit"
@@ -24,8 +24,8 @@ PAYPAL_GLOBAL_LINK = "https://www.paypal.com/invoice/p/#LGFK9KP2H6A55PQH"
 # 2. INICIALIZACIÓN PRINCIPAL DE FASTAPI
 # ---------------------------------------------------------
 app = FastAPI(
-    title="Brunilda S.A.S. - Super Motor Unificado v11.2",
-    description="Motor Legal Dr. Julián López - Fully Verified Order Engine"
+    title="Brunilda S.A.S. - Super Motor Unificado v11.3",
+    description="Motor Legal Dr. Julián López - Complete Code Engine"
 )
 
 # ---------------------------------------------------------
@@ -350,6 +350,7 @@ def descargar_archivo(req: DescargaRequest):
     texto_utf8 = "\ufeff" + req.texto
 
     if req.formato == "doc":
+        texto_html = req.texto.replace('\n', '<br>')
         contenido_doc = f"""<!DOCTYPE html>
 <html>
 <head>
@@ -361,7 +362,7 @@ p {{ margin-bottom: 10pt; }}
 </style>
 </head>
 <body>
-{req.texto.replace('\n', '<br>')}
+{texto_html}
 </body>
 </html>"""
         body_bytes = ("\ufeff" + contenido_doc).encode('utf-8')
@@ -433,4 +434,4 @@ def redactar_contrato_legal(solicitud: SolicitudContratoLegal):
         return json.loads(response.text)
     except Exception as e:
         print(f"⚠️ [ERROR GEMINI CORE]: {e}")
-        raise HTTPException(status_code=500, detail=f"Error en Julián: {str(e)}")                           
+        raise HTTPException(status_code=500, detail=f"Error en Julián: {str(e)}")
