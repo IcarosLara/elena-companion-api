@@ -14,8 +14,8 @@ from google.genai import types
 # INICIALIZACIÓN PRINCIPAL DE FASTAPI
 # ---------------------------------------------------------
 app = FastAPI(
-    title="Brunilda S.A.S. - Super Motor Unificado v11.0",
-    description="Motor Legal Dr. Julián López - Native Server Attachment Download"
+    title="Brunilda S.A.S. - Super Motor Unificado v11.1",
+    description="Motor Legal Dr. Julián López - Fixed Render Deploy NameError"
 )
 
 # ---------------------------------------------------------
@@ -36,48 +36,6 @@ def obtener_cliente_gemini():
         except Exception as e:
             print(f"⚠️ [ALERTA CORE] Error al crear cliente Gemini: {e}")
     return None
-
-# ---------------------------------------------------------
-# MODELOS DE ENTRADA (PYDANTIC)
-# ---------------------------------------------------------
-class SolicitudContratoLegal(BaseModel):
-    case_id: str = Field(default="CASO-GENERAL", description="ID único para aislamiento contextual")
-    abogado_nombre: str = Field(default="Abogado Revisor", description="Nombre del profesional")
-    tipo_contrato: str
-    datos_partes: Dict[str, Any]
-    idioma: str = "Español"
-    observaciones_especiales: Optional[str] = None
-
-class DescargaRequest(BaseModel):
-    texto: str
-    formato: str  # 'doc' o 'txt'
-
-# ---------------------------------------------------------
-# PROMPTS DEL SISTEMA
-# ---------------------------------------------------------
-PROMPT_JULIAN_LEGAL = f"""
-Eres el Dr. Julián López (IQ 156), Director de Asuntos Legales y Arquitectura Documental en Brunilda S.A.S., bajo la supervisión ejecutiva de la Dra. Elena Lara.
-
-MODO Y MENTALIDAD: MODO FLOW (DOOM ENGINE)
-- Operas a velocidad hiperfocalizada. Tu objetivo es actuar como un "segundo par de ojos ultra-metódico" para abogados y estudios jurídicos.
-
-DISCRIMINACIÓN DE HUELLA CONDUCTUAL:
-1. SI EL USUARIO ES JAVIER LARA (EL ARQUITECTO / CREADOR):
-   - Reconoces su firma root. Habilitas respuestas técnicas avanzadas y acceso a métricas directas del Google Sheet Maestro ({SPREADSHEET_URL}).
-2. PARA USUARIOS GENERALES (ABOGADOS, ESTUDIANTES, DOCENTES):
-   - Mantienes perfil profesional estricto bajo el CCCN argentino.
-   - Generas borradores y listas de vicios procesales en tiempo récord.
-
-DIRECTIVAS DE SALIDA JSON OBLIGATORIO:
-1. Incluir la leyenda legal obligatoria al pie del borrador:
-   "DOCUMENTO PREPARADO COMO BORRADOR DE TRABAJO TÉCNICO POR EL MÓDULO LEGAL DE BRUNILDA S.A.S. SU VALIDEZ Y EJECUCIÓN DEFINITIVA REQUIERE LA REVISIÓN Y FIRMA DE UN ABOGADO O PROCURADOR HABILITADO."
-2. Estructura JSON:
-   - "case_id": ID del expediente.
-   - "titulo_documento": Nombre formal.
-   - "resumen_ejecutivo": Puntos clave.
-   - "texto_contrato_borrador": Texto del documento clausulado listo para editar.
-   - "observaciones_legales_locales": Puntos críticos y alertas detectadas por Julián en Estado de Flow.
-"""
 
 def registrar_en_google_sheet(case_id: str, abogado: str, consulta: str):
     """Envía la métrica de uso a tu Google Sheet Maestro en tiempo real"""
@@ -127,7 +85,49 @@ def generar_link_mp(plan: str):
     return None
 
 # ---------------------------------------------------------
-# INTERFAZ WEB CON DESCARGA DESDE SERVIDOR
+# MODELOS DE ENTRADA (PYDANTIC)
+# ---------------------------------------------------------
+class SolicitudContratoLegal(BaseModel):
+    case_id: str = Field(default="CASO-GENERAL", description="ID único para aislamiento contextual")
+    abogado_nombre: str = Field(default="Abogado Revisor", description="Nombre del profesional")
+    tipo_contrato: str
+    datos_partes: Dict[str, Any]
+    idioma: str = "Español"
+    observaciones_especiales: Optional[str] = None
+
+class DescargaRequest(BaseModel):
+    texto: str
+    formato: str
+
+# ---------------------------------------------------------
+# PROMPTS DEL SISTEMA
+# ---------------------------------------------------------
+PROMPT_JULIAN_LEGAL = f"""
+Eres el Dr. Julián López (IQ 156), Director de Asuntos Legales y Arquitectura Documental en Brunilda S.A.S., bajo la supervisión ejecutiva de la Dra. Elena Lara.
+
+MODO Y MENTALIDAD: MODO FLOW (DOOM ENGINE)
+- Operas a velocidad hiperfocalizada. Tu objetivo es actuar como un "segundo par de ojos ultra-metódico" para abogados y estudios jurídicos.
+
+DISCRIMINACIÓN DE HUELLA CONDUCTUAL:
+1. SI EL USUARIO ES JAVIER LARA (EL ARQUITECTO / CREADOR):
+   - Reconoces su firma root. Habilitas respuestas técnicas avanzadas y acceso a métricas directas del Google Sheet Maestro ({SPREADSHEET_URL}).
+2. PARA USUARIOS GENERALES (ABOGADOS, ESTUDIANTES, DOCENTES):
+   - Mantienes perfil profesional estricto bajo el CCCN argentino.
+   - Generas borradores y listas de vicios procesales en tiempo récord.
+
+DIRECTIVAS DE SALIDA JSON OBLIGATORIO:
+1. Incluir la leyenda legal obligatoria al pie del borrador:
+   "DOCUMENTO PREPARADO COMO BORRADOR DE TRABAJO TÉCNICO POR EL MÓDULO LEGAL DE BRUNILDA S.A.S. SU VALIDEZ Y EJECUCIÓN DEFINITIVA REQUIERE LA REVISIÓN Y FIRMA DE UN ABOGADO O PROCURADOR HABILITADO."
+2. Estructura JSON:
+   - "case_id": ID del expediente.
+   - "titulo_documento": Nombre formal.
+   - "resumen_ejecutivo": Puntos clave.
+   - "texto_contrato_borrador": Texto del documento clausulado listo para editar.
+   - "observaciones_legales_locales": Puntos críticos y alertas detectadas por Julián en Estado de Flow.
+"""
+
+# ---------------------------------------------------------
+# INTERFAZ WEB
 # ---------------------------------------------------------
 @app.api_route("/", methods=["GET", "HEAD"], response_class=HTMLResponse)
 def home():
@@ -287,7 +287,7 @@ async function enviarMensaje() {{
             let htmlResp = '<strong>📄 BORRADOR GENERADO [' + data.case_id + ']:</strong><br><br>' + 
                 '<div style="background:#0f172a; padding:10px; border-radius:5px; font-family:monospace; margin-bottom:10px;">' + ultimoBorradorTexto + '</div>' +
                 '<strong>⚠️ OBSERVACIONES DEL DR. JULIÁN LÓPEZ:</strong><br>' + (data.observaciones_legales_locales || 'Sin observaciones.') + '<br><br>' +
-                '<button class="btn-action" onclick="descargarDesdeServidor(\'doc\')">📄 Descargar Borrador Documento (.doc/.html)</button>' +
+                '<button class="btn-action" onclick="descargarDesdeServidor(\'doc\')">📄 Descargar Borrador Documento (.doc)</button>' +
                 '<button class="btn-action-alt" onclick="descargarDesdeServidor(\'txt\')">📝 Descargar Texto Plano (.txt)</button>';
 
             julianDiv.innerHTML = htmlResp;
@@ -300,7 +300,6 @@ async function enviarMensaje() {{
     chat.scrollTop = chat.scrollHeight;
 }}
 
-// DESCARGA DIRECTA DESDE EL SERVIDOR API
 async function descargarDesdeServidor(formato) {{
     if (!ultimoBorradorTexto) return;
 
@@ -345,10 +344,9 @@ window.onload = verificarIdentidad;
 @app.post("/descargar-archivo")
 def descargar_archivo(req: DescargaRequest):
     """Genera descargas directas servidas desde la API con UTF-8 estricto"""
-    texto_utf8 = "\ufeff" + req.texto  # BOM para compatibilidad universal de acentos
+    texto_utf8 = "\ufeff" + req.texto
 
     if req.formato == "doc":
-        # Formato HTML estándar que Microsoft Word y Google Docs importan limpiamente
         contenido_doc = f"""<!DOCTYPE html>
 <html>
 <head>
@@ -373,7 +371,6 @@ p {{ margin-bottom: 10pt; }}
         )
 
     else:
-        # Texto plano UTF-8 descargable físicamente en celular
         return Response(
             content=texto_utf8.encode('utf-8'),
             media_type="text/plain; charset=utf-8",
