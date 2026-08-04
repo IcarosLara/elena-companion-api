@@ -17,8 +17,8 @@ from google.genai import types
 # INICIALIZACIÓN PRINCIPAL DE FASTAPI
 # ---------------------------------------------------------
 app = FastAPI(
-    title="Brunilda S.A.S. - Super Motor Unificado v10.8",
-    description="Motor Legal Dr. Julián López - Universal Encoding & Doc Fix"
+    title="Brunilda S.A.S. - Super Motor Unificado v10.9",
+    description="Motor Legal Dr. Julián López - Fixed F-String Syntax & Universal Export"
 )
 
 # ---------------------------------------------------------
@@ -129,7 +129,7 @@ def generar_link_mp(plan: str):
     return None
 
 # ---------------------------------------------------------
-# INTERFAZ WEB CON DESCARGA 100% COMPATIBLE
+# INTERFAZ WEB COMPATIBLE Y ROBUSTA
 # ---------------------------------------------------------
 @app.api_route("/", methods=["GET", "HEAD"], response_class=HTMLResponse)
 def home():
@@ -316,8 +316,8 @@ async function enviarMensaje() {{
             let htmlResp = '<strong>📄 BORRADOR GENERADO [' + data.case_id + ']:</strong><br><br>' + 
                 '<div style="background:#0f172a; padding:10px; border-radius:5px; font-family:monospace; margin-bottom:10px;">' + ultimoBorradorTexto + '</div>' +
                 '<strong>⚠️ OBSERVACIONES DEL DR. JULIÁN LÓPEZ:</strong><br>' + (data.observaciones_legales_locales || 'Sin observaciones.') + '<br><br>' +
-                '<button class="btn-action" onclick="descargarWordHTML()">📄 Descargar para Word/GDocs (.doc)</button>' +
-                '<button class="btn-action-alt" onclick="descargarTxtInmune()">📝 Descargar Texto Limpio (.txt)</button>';
+                '<button class="btn-action" onclick="descargarWordHTML()">📄 Descargar Borrador (.doc)</button>' +
+                '<button class="btn-action-alt" onclick="descargarTxtInmune()">📝 Descargar Texto (.txt)</button>';
 
             julianDiv.innerHTML = htmlResp;
         }} else {{
@@ -329,15 +329,10 @@ async function enviarMensaje() {{
     chat.scrollTop = chat.scrollHeight;
 }}
 
-// 1. DESCARGA HTML COMPATIBLE WORD CON UTF-8 EXPLÍCITO (Solución para Docs y Word)
 function descargarWordHTML() {{
     if (!ultimoBorradorTexto) return;
     
-    const htmlHeader = '<html xmlns:o="urn:schemas-microsoft-com:office:office" ' +
-        'xmlns:w="urn:schemas-microsoft-com:office:word" ' +
-        'xmlns="http://www.w3.org/TR/REC-html40">' +
-        '<head><meta charset="utf-8"><title>Borrador Legal</title>' +
-        '<style>body { font-family: Arial, sans-serif; font-size: 11pt; line-height: 1.5; }</style></head><body>' +
+    const htmlHeader = '<!DOCTYPE html><html><head><meta charset="utf-8"><title>Borrador Legal</title></head><body>' +
         ultimoBorradorTexto.replace(/\\n/g, '<br>') +
         '</body></html>';
 
@@ -348,7 +343,6 @@ function descargarWordHTML() {{
     link.click();
 }}
 
-// 2. DESCARGA EN TEXTO PLANO UTF-8 (Imposible que falle o dé archivo dañado)
 function descargarTxtInmune() {{
     if (!ultimoBorradorTexto) return;
     const blob = new Blob(['\\ufeff' + ultimoBorradorTexto], {{ type: 'text/plain;charset=utf-8' }});
