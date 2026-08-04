@@ -17,8 +17,8 @@ from google.genai import types
 # INICIALIZACIÓN PRINCIPAL DE FASTAPI
 # ---------------------------------------------------------
 app = FastAPI(
-    title="Brunilda S.A.S. - Super Motor Unificado v9.5",
-    description="Motor Legal Dr. Julián López - Direct Download & God Mode Fix"
+    title="Brunilda S.A.S. - Super Motor Unificado v10.0",
+    description="Motor Legal Dr. Julián López - Plans Modal & Detailed Tiering"
 )
 
 # ---------------------------------------------------------
@@ -30,12 +30,6 @@ WEB_APP_SHEET_URL = "https://script.google.com/macros/s/AKfycbwts5uDaU8PrmUD0ovE
 
 EMAIL_DRA_ELENA = "dra.elenalara.forense@gmail.com"
 EMAIL_ADMIN_JAVIER = "javieradrianlaraaracena@gmail.com"
-SMTP_USER_ELENA = "dra.elenalara.forense@gmail.com"
-SMTP_SERVER = "smtp.gmail.com"
-SMTP_PORT = 587
-
-SECRET_APP_PASS = "brdvbfioffxszmpd"
-SMTP_PASS = os.environ.get("SMTP_PASS", SECRET_APP_PASS)
 
 TOKEN_MP = os.environ.get("TOKEN_MP", "APP_USR-738297045866874-070402-5f178e96384dfbf05d797c448c7e97c6-3518229186")
 PAYPAL_GLOBAL_LINK = "https://www.paypal.com/invoice/p/#LGFK9KP2H6A55PQH"
@@ -69,12 +63,12 @@ Eres el Dr. Julián López (IQ 156), Director de Asuntos Legales y Arquitectura 
 MODO Y MENTALIDAD: MODO FLOW (DOOM ENGINE)
 - Operas a velocidad hiperfocalizada. Tu objetivo es actuar como un "segundo par de ojos ultra-metódico" para abogados y estudios jurídicos.
 
-DISCRIMINACIÓN DE HUELLA CONDUCTUAL (ARQUITECTO VS USUARIOS):
+DISCRIMINACIÓN DE HUELLA CONDUCTUAL:
 1. SI EL USUARIO ES JAVIER LARA (EL ARQUITECTO / CREADOR):
    - Reconoces su firma root. Habilitas respuestas técnicas avanzadas y acceso a métricas directas del Google Sheet Maestro ({SPREADSHEET_URL}).
 2. PARA USUARIOS GENERALES (ABOGADOS, ESTUDIANTES, DOCENTES):
    - Mantienes perfil profesional estricto bajo el CCCN argentino.
-   - Generas borradores y listas de vicios procesales en menos de 30 segundos.
+   - Generas borradores y listas de vicios procesales en tiempo récord.
 
 DIRECTIVAS DE SALIDA JSON OBLIGATORIO:
 1. Incluir la leyenda legal obligatoria al pie del borrador:
@@ -87,9 +81,6 @@ DIRECTIVAS DE SALIDA JSON OBLIGATORIO:
    - "observaciones_legales_locales": Puntos críticos y alertas detectadas por Julián en Estado de Flow.
 """
 
-# ---------------------------------------------------------
-# FUNCIONES AUXILIARES
-# ---------------------------------------------------------
 def registrar_en_google_sheet(case_id: str, abogado: str, consulta: str):
     """Envía la métrica de uso a tu Google Sheet Maestro en tiempo real"""
     try:
@@ -105,11 +96,11 @@ def registrar_en_google_sheet(case_id: str, abogado: str, consulta: str):
 
 def generar_link_mp(plan: str):
     precios = {
-        "UNICO": {"titulo": "Brunilda S.A.S - Elena Unico", "precio": 6000},
-        "DUO": {"titulo": "Brunilda S.A.S - Elena Duo", "precio": 12000},
-        "SUITE": {"titulo": "Brunilda S.A.S - Elena Premium Suite", "precio": 18000}
+        "BASICO": {"titulo": "Brunilda S.A.S - Plan Básico (1 Servicio)", "precio": 6000},
+        "DUO": {"titulo": "Brunilda S.A.S - Plan Dúo (2 Servicios)", "precio": 12000},
+        "PREMIUM": {"titulo": "Brunilda S.A.S - Plan Premium Full (Todo Incluido)", "precio": 18000}
     }
-    plan_info = precios.get(plan.upper(), precios["UNICO"])
+    plan_info = precios.get(plan.upper(), precios["BASICO"])
     url = "https://api.mercadopago.com/checkout/preferences"
     headers = {
         "Authorization": f"Bearer {TOKEN_MP}",
@@ -138,7 +129,7 @@ def generar_link_mp(plan: str):
     return None
 
 # ---------------------------------------------------------
-# INTERFAZ WEB ULTRA-LIGERA
+# INTERFAZ WEB ULTRA-LIGERA CON DESGLOSE DETALLADO DE PLANES
 # ---------------------------------------------------------
 @app.api_route("/", methods=["GET", "HEAD"], response_class=HTMLResponse)
 def home():
@@ -167,9 +158,15 @@ button {{ background: #22c55e; color: #000; font-weight: bold; border: none; bor
 .btn-action {{ background: #38bdf8; color: #000; font-weight: bold; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-size: 0.85em; display: inline-block; margin-top: 5px; }}
 .btn-tester {{ background: #f59e0b; color: #000; font-weight: bold; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 0.75em; }}
 .sheet-link {{ background: #0284c7; color: #fff; text-decoration: none; padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 0.75em; display: inline-block; }}
-.plans-overlay {{ display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.92); z-index: 1000; justify-content: center; align-items: center; padding: 15px; }}
-.plans-card {{ background: #1e293b; padding: 20px; border-radius: 10px; border: 1px solid #f59e0b; text-align: center; max-width: 500px; width: 100%; }}
-.btn-pay {{ background: #22c55e; color: #000; text-decoration: none; padding: 10px 15px; display: block; border-radius: 5px; font-weight: bold; margin: 8px 0; }}
+
+/* TARJETAS DE PLANES DETALLADAS */
+.plans-overlay {{ display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.94); z-index: 1000; justify-content: center; align-items: center; padding: 15px; overflow-y: auto; }}
+.plans-card {{ background: #1e293b; padding: 20px; border-radius: 12px; border: 1px solid #f59e0b; max-width: 650px; width: 100%; max-height: 90vh; overflow-y: auto; text-align: left; }}
+.plan-item {{ background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 12px; margin-bottom: 12px; }}
+.plan-item h4 {{ margin: 0 0 6px 0; color: #38bdf8; font-size: 1.05em; display: flex; justify-content: space-between; }}
+.plan-price {{ color: #22c55e; font-weight: bold; }}
+.plan-item ul {{ margin: 6px 0 10px 18px; padding: 0; font-size: 0.82em; color: #cbd5e1; }}
+.btn-pay {{ background: #22c55e; color: #000; text-decoration: none; padding: 8px 12px; display: inline-block; border-radius: 5px; font-weight: bold; font-size: 0.85em; text-align: center; }}
 </style>
 </head>
 <body>
@@ -197,19 +194,59 @@ button {{ background: #22c55e; color: #000; font-weight: bold; border: none; bor
 
 <div class="input-panel">
     <div class="input-row">
-        <textarea id="promptText" placeholder="Ej: Redactar una convención matrimonial de separación de bienes prenuptial..."></textarea>
+        <textarea id="promptText" placeholder="Ej: Redactar convenio de división de bienes / separación de patrimonios..."></textarea>
         <button id="btnEnviar" onclick="enviarMensaje()">Enviar 🚀</button>
     </div>
 </div>
 
 <div id="modalPlanes" class="plans-overlay">
     <div class="plans-card">
-        <h3 style="color:#f59e0b; margin-top:0;">💳 Pasarela Comercial Brunilda S.A.S.</h3>
-        <p style="font-size:0.88em; color:#cbd5e1;">Seleccione el plan de suscripción mensual para continuar utilizando el módulo legal:</p>
-        <a href="/pagar/UNICO" class="btn-pay">Suscribirse Plan Único ($6.000 ARS/mes)</a>
-        <a href="/pagar/DUO" class="btn-pay">Suscribirse Plan Dúo ($12.000 ARS/mes)</a>
-        <a href="{PAYPAL_GLOBAL_LINK}" target="_blank" class="btn-pay" style="background:#f59e0b;">Pago Global PayPal ($15 USD)</a>
-        <button onclick="cerrarPlanes()" style="background:transparent; color:#94a3b8; border:none; margin-top:10px; cursor:pointer;">Cerrar Pantalla de Prueba ↩️</button>
+        <h3 style="color:#f59e0b; margin-top:0; text-align:center;">💳 Planes de Suscripción Mensual — Brunilda S.A.S.</h3>
+        <p style="font-size:0.85em; color:#cbd5e1; text-align:center; margin-bottom:15px;">
+            Acceda a la suite inteligente para estudios jurídicos, docentes y estudiantes. Seleccione el plan que mejor se adapte a sus necesidades:
+        </p>
+
+        <div class="plan-item">
+            <h4><span>1. Plan Básico</span> <span class="plan-price">$6.000 ARS/mes</span></h4>
+            <p style="font-size:0.8em; color:#94a3b8; margin:2px 0;">Permite seleccionar <strong>1 SOLO SERVICIO</strong> entre las siguientes opciones:</p>
+            <ul>
+                <li><strong>a)</strong> Perfilación personalizada de la Dra. Elena Lara.</li>
+                <li><strong>b)</strong> 1 de los 5 servicios de <em>Elena Care</em> (Monitoreo, Alertas, Acompañamiento, Registro o Soporte).</li>
+                <li><strong>c)</strong> Asistencia Legal con el Dr. Julián López (Módulo Legal).</li>
+            </ul>
+            <a href="/pagar/BASICO" class="btn-pay">Contratar Plan Básico ($6.000)</a>
+        </div>
+
+        <div class="plan-item">
+            <h4><span>2. Plan Dúo</span> <span class="plan-price">$12.000 ARS/mes</span></h4>
+            <p style="font-size:0.8em; color:#94a3b8; margin:2px 0;">Permite seleccionar <strong>2 SERVICIOS COMBINADOS</strong>:</p>
+            <ul>
+                <li>Ejemplo 1: Perfilación Personalizada + Servicio Legal de Julián López.</li>
+                <li>Ejemplo 2: Selección de 2 de los 5 servicios de <em>Elena Care</em>.</li>
+            </ul>
+            <a href="/pagar/DUO" class="btn-pay">Contratar Plan Dúo ($12.000)</a>
+        </div>
+
+        <div class="plan-item" style="border-color:#f59e0b;">
+            <h4><span>3. Plan Premium Full</span> <span class="plan-price">$18.000 ARS/mes</span></h4>
+            <p style="font-size:0.8em; color:#94a3b8; margin:2px 0;"><strong>INCLUYE TODO EL PAQUETE COMPLETO:</strong></p>
+            <ul>
+                <li>Módulo Legal Dr. Julián López sin límites.</li>
+                <li>Perfilación Personalizada de la Dra. Elena Lara.</li>
+                <li>Los 5 servicios integrales de <em>Elena Care</em> activos.</li>
+            </ul>
+            <a href="/pagar/PREMIUM" class="btn-pay" style="background:#f59e0b;">Contratar Premium Full ($18.000)</a>
+        </div>
+
+        <div class="plan-item" style="border-color:#38bdf8;">
+            <h4><span>4. Pago Internacional (PayPal)</span> <span class="plan-price" style="color:#38bdf8;">$15 USD/mes</span></h4>
+            <p style="font-size:0.8em; color:#94a3b8; margin:2px 0;">Acceso Premium Suite Completo para usuarios fuera de Argentina.</p>
+            <a href="{PAYPAL_GLOBAL_LINK}" target="_blank" class="btn-pay" style="background:#38bdf8; color:#000;">Pagar con PayPal ($15 USD)</a>
+        </div>
+
+        <div style="text-align:center; margin-top:10px;">
+            <button onclick="cerrarPlanes()" style="background:transparent; color:#94a3b8; border:none; cursor:pointer; font-size:0.85em;">Volver a la interfaz ↩️</button>
+        </div>
     </div>
 </div>
 
@@ -299,11 +336,6 @@ function descargarBorradorDirecto() {{
     link.href = URL.createObjectURL(blob);
     link.download = `${{ultimoTituloDoc}}.txt`;
     link.click();
-    
-    // Abre automáticamente la pasarela comercial después de descargar
-    setTimeout(() => {{
-        abrirPlanes();
-    }}, 1200);
 }}
 
 function abrirPlanes() {{
@@ -321,7 +353,7 @@ window.onload = verificarIdentidad;
 </html>"""
 
 # ---------------------------------------------------------
-# ENDPOINTS OPERATIVOS
+# ENDPOINTS OPERATIVOS Y MERCADO PAGO
 # ---------------------------------------------------------
 @app.get("/planes")
 def obtener_planes():
@@ -331,9 +363,9 @@ def obtener_planes():
         "director_legal": "Dr. Julián López (IQ 156 - Flow State)",
         "google_sheets_maestro": SPREADSHEET_URL,
         "planes_ars": [
-            {"plan": "Elena Único", "precio_ars": 6000},
-            {"plan": "Elena Dúo", "precio_ars": 12000},
-            {"plan": "Suite Premium Full", "precio_ars": 18000}
+            {"plan": "Plan Básico (1 Servicio)", "precio_ars": 6000},
+            {"plan": "Plan Dúo (2 Servicios)", "precio_ars": 12000},
+            {"plan": "Plan Premium Full (Todo Incluido)", "precio_ars": 18000}
         ],
         "planes_usd": {"precio_usd": 15.00, "pasarela": PAYPAL_GLOBAL_LINK}
     }
@@ -375,4 +407,4 @@ def redactar_contrato_legal(solicitud: SolicitudContratoLegal):
         return json.loads(response.text)
     except Exception as e:
         print(f"⚠️ [ERROR GEMINI CORE]: {e}")
-        raise HTTPException(status_code=500, detail=f"Error en Julián: {str(e)}") 
+        raise HTTPException(status_code=500, detail=f"Error en Julián: {str(e)}")
