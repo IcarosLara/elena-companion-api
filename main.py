@@ -3,7 +3,7 @@ import json
 import datetime
 import requests
 
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException
 from fastapi.responses import HTMLResponse, RedirectResponse, Response
 from pydantic import BaseModel, Field
 from typing import Dict, Any, Optional
@@ -11,7 +11,7 @@ from google import genai
 from google.genai import types
 
 # ---------------------------------------------------------
-# 1. CONFIGURACIÓN MAESTRA Y VARIABLES GLOBALES
+# 1. CONFIGURACIÓN Y VARIABLES GLOBALES
 # ---------------------------------------------------------
 SPREADSHEET_ID = "1_9a1awPkwQrsLVua8XGH2QJdhbO78EZ12T8OKcxt7To"
 SPREADSHEET_URL = f"https://docs.google.com/spreadsheets/d/{SPREADSHEET_ID}/edit"
@@ -21,11 +21,11 @@ TOKEN_MP = os.environ.get("TOKEN_MP", "APP_USR-738297045866874-070402-5f178e9638
 PAYPAL_GLOBAL_LINK = "https://www.paypal.com/invoice/p/#LGFK9KP2H6A55PQH"
 
 # ---------------------------------------------------------
-# 2. INICIALIZACIÓN PRINCIPAL DE FASTAPI
+# 2. INICIALIZACIÓN DE FASTAPI
 # ---------------------------------------------------------
 app = FastAPI(
-    title="Brunilda S.A.S. - Super Motor Unificado v11.3",
-    description="Motor Legal Dr. Julián López - Complete Code Engine"
+    title="Brunilda S.A.S. - Super Motor Unificado v11.4",
+    description="Motor Legal Dr. Julián López - Fixed JS Interface Engine"
 )
 
 # ---------------------------------------------------------
@@ -41,7 +41,6 @@ def obtener_cliente_gemini():
     return None
 
 def registrar_en_google_sheet(case_id: str, abogado: str, consulta: str):
-    """Envía la métrica de uso a tu Google Sheet Maestro en tiempo real"""
     try:
         payload = {
             "fecha": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
@@ -88,11 +87,11 @@ def generar_link_mp(plan: str):
     return None
 
 # ---------------------------------------------------------
-# 4. MODELOS DE ENTRADA (PYDANTIC)
+# 4. MODELOS PYDANTIC
 # ---------------------------------------------------------
 class SolicitudContratoLegal(BaseModel):
-    case_id: str = Field(default="CASO-GENERAL", description="ID único para aislamiento contextual")
-    abogado_nombre: str = Field(default="Abogado Revisor", description="Nombre del profesional")
+    case_id: str = Field(default="CASO-GENERAL")
+    abogado_nombre: str = Field(default="Abogado Revisor")
     tipo_contrato: str
     datos_partes: Dict[str, Any]
     idioma: str = "Español"
@@ -103,20 +102,13 @@ class DescargaRequest(BaseModel):
     formato: str
 
 # ---------------------------------------------------------
-# 5. PROMPTS DEL SISTEMA
+# 5. PROMPT DEL SISTEMA
 # ---------------------------------------------------------
-PROMPT_JULIAN_LEGAL = f"""
+PROMPT_JULIAN_LEGAL = """
 Eres el Dr. Julián López (IQ 156), Director de Asuntos Legales y Arquitectura Documental en Brunilda S.A.S., bajo la supervisión ejecutiva de la Dra. Elena Lara.
 
 MODO Y MENTALIDAD: MODO FLOW (DOOM ENGINE)
 - Operas a velocidad hiperfocalizada. Tu objetivo es actuar como un "segundo par de ojos ultra-metódico" para abogados y estudios jurídicos.
-
-DISCRIMINACIÓN DE HUELLA CONDUCTUAL:
-1. SI EL USUARIO ES JAVIER LARA (EL ARQUITECTO / CREADOR):
-   - Reconoces su firma root. Habilitas respuestas técnicas avanzadas y acceso a métricas directas del Google Sheet Maestro ({SPREADSHEET_URL}).
-2. PARA USUARIOS GENERALES (ABOGADOS, ESTUDIANTES, DOCENTES):
-   - Mantienes perfil profesional estricto bajo el CCCN argentino.
-   - Generas borradores y listas de vicios procesales en tiempo récord.
 
 DIRECTIVAS DE SALIDA JSON OBLIGATORIO:
 1. Incluir la leyenda legal obligatoria al pie del borrador:
@@ -130,44 +122,41 @@ DIRECTIVAS DE SALIDA JSON OBLIGATORIO:
 """
 
 # ---------------------------------------------------------
-# 6. INTERFAZ WEB
+# 6. INTERFAZ WEB COMPLETA
 # ---------------------------------------------------------
-@app.api_route("/", methods=["GET", "HEAD"], response_class=HTMLResponse)
-def home():
-    return f"""<!DOCTYPE html>
+HTML_PAGE = """<!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Brunilda S.A.S. - Módulo Legal Dr. Julián López</title>
 <style>
-* {{ box-sizing: border-box; }}
-body {{ font-family: system-ui, -apple-system, sans-serif; background: #0f172a; color: #f8fafc; margin: 0; padding: 0; display: flex; flex-direction: column; height: 100vh; }}
-.header {{ background: #1e293b; padding: 12px 15px; border-bottom: 1px solid #334155; display: flex; justify-content: space-between; align-items: center; }}
-.header h1 {{ margin: 0; font-size: 1.1em; color: #38bdf8; }}
-.header-status {{ font-size: 0.8em; color: #22c55e; background: #0f172a; padding: 4px 10px; border-radius: 12px; border: 1px solid #16a34a; }}
-.chat-container {{ flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 12px; max-width: 900px; width: 100%; margin: 0 auto; }}
-.msg {{ max-width: 88%; padding: 10px 14px; border-radius: 8px; line-height: 1.4; font-size: 0.9em; white-space: pre-wrap; }}
-.msg-julian {{ background: #1e293b; border-left: 4px solid #38bdf8; align-self: flex-start; }}
-.msg-user {{ background: #0284c7; align-self: flex-end; color: #fff; }}
-.input-panel {{ background: #1e293b; border-top: 1px solid #334155; padding: 10px; display: flex; flex-direction: column; gap: 6px; max-width: 900px; width: 100%; margin: 0 auto; }}
-.input-row {{ display: flex; gap: 8px; }}
-textarea {{ flex: 1; background: #0f172a; border: 1px solid #475569; color: #fff; border-radius: 6px; padding: 8px; resize: none; height: 48px; font-size: 16px; }}
-button {{ background: #22c55e; color: #000; font-weight: bold; border: none; border-radius: 6px; padding: 0 16px; cursor: pointer; }}
-.case-bar {{ background: #0f172a; padding: 8px 15px; border-bottom: 1px solid #334155; font-size: 0.8em; color: #94a3b8; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; align-items:center; }}
-.case-bar input {{ background: #1e293b; border: 1px solid #475569; color: #fff; padding: 4px 8px; border-radius: 4px; }}
-.btn-action {{ background: #38bdf8; color: #000; font-weight: bold; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-size: 0.85em; display: inline-block; margin: 4px 4px 0 0; }}
-.btn-action-alt {{ background: #22c55e; color: #000; font-weight: bold; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-size: 0.85em; display: inline-block; margin: 4px 4px 0 0; }}
-.btn-tester {{ background: #f59e0b; color: #000; font-weight: bold; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 0.75em; }}
-.sheet-link {{ background: #0284c7; color: #fff; text-decoration: none; padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 0.75em; display: inline-block; }}
+* { box-sizing: border-box; }
+body { font-family: system-ui, -apple-system, sans-serif; background: #0f172a; color: #f8fafc; margin: 0; padding: 0; display: flex; flex-direction: column; height: 100vh; }
+.header { background: #1e293b; padding: 12px 15px; border-bottom: 1px solid #334155; display: flex; justify-content: space-between; align-items: center; }
+.header h1 { margin: 0; font-size: 1.1em; color: #38bdf8; }
+.header-status { font-size: 0.8em; color: #22c55e; background: #0f172a; padding: 4px 10px; border-radius: 12px; border: 1px solid #16a34a; }
+.chat-container { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 12px; max-width: 900px; width: 100%; margin: 0 auto; }
+.msg { max-width: 88%; padding: 10px 14px; border-radius: 8px; line-height: 1.4; font-size: 0.9em; white-space: pre-wrap; }
+.msg-julian { background: #1e293b; border-left: 4px solid #38bdf8; align-self: flex-start; }
+.msg-user { background: #0284c7; align-self: flex-end; color: #fff; }
+.input-panel { background: #1e293b; border-top: 1px solid #334155; padding: 10px; display: flex; flex-direction: column; gap: 6px; max-width: 900px; width: 100%; margin: 0 auto; }
+.input-row { display: flex; gap: 8px; }
+textarea { flex: 1; background: #0f172a; border: 1px solid #475569; color: #fff; border-radius: 6px; padding: 8px; resize: none; height: 48px; font-size: 16px; }
+button { background: #22c55e; color: #000; font-weight: bold; border: none; border-radius: 6px; padding: 0 16px; cursor: pointer; }
+.case-bar { background: #0f172a; padding: 8px 15px; border-bottom: 1px solid #334155; font-size: 0.8em; color: #94a3b8; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; align-items:center; }
+.case-bar input { background: #1e293b; border: 1px solid #475569; color: #fff; padding: 4px 8px; border-radius: 4px; }
+.btn-action { background: #38bdf8; color: #000; font-weight: bold; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-size: 0.85em; display: inline-block; margin: 4px 4px 0 0; }
+.btn-action-alt { background: #22c55e; color: #000; font-weight: bold; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-size: 0.85em; display: inline-block; margin: 4px 4px 0 0; }
+.btn-tester { background: #f59e0b; color: #000; font-weight: bold; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 0.75em; }
+.sheet-link { background: #0284c7; color: #fff; text-decoration: none; padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 0.75em; display: inline-block; }
 
-.plans-overlay {{ display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.94); z-index: 1000; justify-content: center; align-items: center; padding: 15px; overflow-y: auto; }}
-.plans-card {{ background: #1e293b; padding: 20px; border-radius: 12px; border: 1px solid #f59e0b; max-width: 650px; width: 100%; max-height: 90vh; overflow-y: auto; text-align: left; }}
-.plan-item {{ background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 12px; margin-bottom: 12px; }}
-.plan-item h4 {{ margin: 0 0 6px 0; color: #38bdf8; font-size: 1.05em; display: flex; justify-content: space-between; }}
-.plan-price {{ color: #22c55e; font-weight: bold; }}
-.plan-item ul {{ margin: 6px 0 10px 18px; padding: 0; font-size: 0.82em; color: #cbd5e1; }}
-.btn-pay {{ background: #22c55e; color: #000; text-decoration: none; padding: 8px 12px; display: inline-block; border-radius: 5px; font-weight: bold; font-size: 0.85em; text-align: center; }}
+.plans-overlay { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.94); z-index: 1000; justify-content: center; align-items: center; padding: 15px; overflow-y: auto; }
+.plans-card { background: #1e293b; padding: 20px; border-radius: 12px; border: 1px solid #f59e0b; max-width: 650px; width: 100%; max-height: 90vh; overflow-y: auto; text-align: left; }
+.plan-item { background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 12px; margin-bottom: 12px; }
+.plan-item h4 { margin: 0 0 6px 0; color: #38bdf8; font-size: 1.05em; display: flex; justify-content: space-between; }
+.plan-price { color: #22c55e; font-weight: bold; }
+.btn-pay { background: #22c55e; color: #000; text-decoration: none; padding: 8px 12px; display: inline-block; border-radius: 5px; font-weight: bold; font-size: 0.85em; text-align: center; }
 </style>
 </head>
 <body>
@@ -183,7 +172,7 @@ button {{ background: #22c55e; color: #000; font-weight: bold; border: none; bor
     <span>Abogado/Operador:</span>
     <input type="text" id="abogadoNombre" value="Javier Lara" oninput="verificarIdentidad()">
     <button class="btn-tester" onclick="abrirPlanes()">🧪 Testear Pasarela (Planes)</button>
-    <a href="{SPREADSHEET_URL}" target="_blank" id="rootSheetBtn" class="sheet-link" style="display:inline-block;">📊 Sheets Maestro</a>
+    <a href="SPREADSHEET_URL_PLACEHOLDER" target="_blank" id="rootSheetBtn" class="sheet-link" style="display:inline-block;">📊 Sheets Maestro</a>
 </div>
 
 <div class="chat-container" id="chat">
@@ -217,7 +206,7 @@ button {{ background: #22c55e; color: #000; font-weight: bold; border: none; bor
         </div>
         <div class="plan-item" style="border-color:#38bdf8;">
             <h4><span>4. Pago Internacional (PayPal)</span> <span class="plan-price" style="color:#38bdf8;">$15 USD/mes</span></h4>
-            <a href="{PAYPAL_GLOBAL_LINK}" target="_blank" class="btn-pay" style="background:#38bdf8; color:#000;">Pagar con PayPal ($15 USD)</a>
+            <a href="PAYPAL_LINK_PLACEHOLDER" target="_blank" class="btn-pay" style="background:#38bdf8; color:#000;">Pagar con PayPal ($15 USD)</a>
         </div>
         <div style="text-align:center; margin-top:10px;">
             <button onclick="cerrarPlanes()" style="background:transparent; color:#94a3b8; border:none; cursor:pointer; font-size:0.85em;">Volver ↩️</button>
@@ -226,37 +215,37 @@ button {{ background: #22c55e; color: #000; font-weight: bold; border: none; bor
 </div>
 
 <script>
-let ultimoBorradorTexto = "";
+var ultimoBorradorTexto = "";
 
-function verificarIdentidad() {{
-    const nombre = document.getElementById('abogadoNombre').value.trim().toLowerCase();
-    const badge = document.getElementById('modeBadge');
-    const sheetBtn = document.getElementById('rootSheetBtn');
+function verificarIdentidad() {
+    var nombre = document.getElementById('abogadoNombre').value.trim().toLowerCase();
+    var badge = document.getElementById('modeBadge');
+    var sheetBtn = document.getElementById('rootSheetBtn');
     
-    if (nombre.includes("javier") || nombre.includes("lara")) {{
+    if (nombre.indexOf("javier") !== -1 || nombre.indexOf("lara") !== -1) {
         badge.innerText = "👑 MODO ARQUITECTO (ROOT)";
         badge.style.borderColor = "#f59e0b";
         badge.style.color = "#f59e0b";
         sheetBtn.style.display = "inline-block";
-    }} else {{
+    } else {
         badge.innerText = "🟢 Usuario Habilitado";
         badge.style.borderColor = "#16a34a";
         badge.style.color = "#22c55e";
         sheetBtn.style.display = "none";
-    }}
-}}
+    }
+}
 
-async function enviarMensaje() {{
+function enviarMensaje() {
     verificarIdentidad();
-    const input = document.getElementById('promptText');
-    const text = input.value.trim();
+    var input = document.getElementById('promptText');
+    var text = input.value.trim();
     if (!text) return;
 
-    const chat = document.getElementById('chat');
-    const caseId = document.getElementById('caseId').value || 'CASO-GENERAL';
-    const abogadoNombre = document.getElementById('abogadoNombre').value || 'Abogado Revisor';
+    var chat = document.getElementById('chat');
+    var caseId = document.getElementById('caseId').value || 'CASO-GENERAL';
+    var abogadoNombre = document.getElementById('abogadoNombre').value || 'Abogado Revisor';
 
-    const userDiv = document.createElement('div');
+    var userDiv = document.createElement('div');
     userDiv.className = 'msg msg-user';
     userDiv.innerText = text;
     chat.appendChild(userDiv);
@@ -264,76 +253,78 @@ async function enviarMensaje() {{
     input.value = '';
     chat.scrollTop = chat.scrollHeight;
 
-    const julianDiv = document.createElement('div');
+    var julianDiv = document.createElement('div');
     julianDiv.className = 'msg msg-julian';
     julianDiv.innerText = '⚡ Dr. Julián López está procesando en Modo Flow...';
     chat.appendChild(julianDiv);
     chat.scrollTop = chat.scrollHeight;
 
-    try {{
-        const response = await fetch('/legal/redactar-contrato', {{
-            method: 'POST',
-            headers: {{ 'Content-Type': 'application/json' }},
-            body: JSON.stringify({{
-                case_id: caseId,
-                abogado_nombre: abogadoNombre,
-                tipo_contrato: text.substring(0, 50),
-                datos_partes: {{ "instruccion_abogado": text }},
-                idioma: "Español"
-            }})
-        }});
-
-        const data = await response.json();
-        if (data.texto_contrato_borrador) {{
+    fetch('/legal/redactar-contrato', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            case_id: caseId,
+            abogado_nombre: abogadoNombre,
+            tipo_contrato: text.substring(0, 50),
+            datos_partes: { "instruccion_abogado": text },
+            idioma: "Español"
+        })
+    })
+    .then(function(res) { return res.json(); })
+    .then(function(data) {
+        if (data.texto_contrato_borrador) {
             ultimoBorradorTexto = data.texto_contrato_borrador;
             
-            let htmlResp = '<strong>📄 BORRADOR GENERADO [' + data.case_id + ']:</strong><br><br>' + 
+            var htmlResp = '<strong>📄 BORRADOR GENERADO:</strong><br><br>' + 
                 '<div style="background:#0f172a; padding:10px; border-radius:5px; font-family:monospace; margin-bottom:10px;">' + ultimoBorradorTexto + '</div>' +
                 '<strong>⚠️ OBSERVACIONES DEL DR. JULIÁN LÓPEZ:</strong><br>' + (data.observaciones_legales_locales || 'Sin observaciones.') + '<br><br>' +
                 '<button class="btn-action" onclick="descargarDesdeServidor(\'doc\')">📄 Descargar Borrador Documento (.doc)</button>' +
                 '<button class="btn-action-alt" onclick="descargarDesdeServidor(\'txt\')">📝 Descargar Texto Plano (.txt)</button>';
 
             julianDiv.innerHTML = htmlResp;
-        }} else {{
+        } else {
             julianDiv.innerText = "Respuesta: " + JSON.stringify(data);
-        }}
-    }} catch (err) {{
+        }
+        chat.scrollTop = chat.scrollHeight;
+    })
+    .catch(function(err) {
         julianDiv.innerText = "❌ Error al conectar: " + err.message;
-    }}
-    chat.scrollTop = chat.scrollHeight;
-}}
+        chat.scrollTop = chat.scrollHeight;
+    });
+}
 
-async function descargarDesdeServidor(formato) {{
+function descargarDesdeServidor(formato) {
     if (!ultimoBorradorTexto) return;
 
-    try {{
-        const response = await fetch('/descargar-archivo', {{
-            method: 'POST',
-            headers: {{ 'Content-Type': 'application/json' }},
-            body: JSON.stringify({{
-                texto: ultimoBorradorTexto,
-                formato: formato
-            }})
-        }});
-
-        if (!response.ok) throw new Error("Error en servidor");
-
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
+    fetch('/descargar-archivo', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            texto: ultimoBorradorTexto,
+            formato: formato
+        })
+    })
+    .then(function(res) {
+        if (!res.ok) throw new Error("Error en servidor");
+        return res.blob();
+    })
+    .then(function(blob) {
+        var url = window.URL.createObjectURL(blob);
+        var a = document.createElement('a');
         a.href = url;
         a.download = formato === 'doc' ? 'Borrador_Legal_Julian.doc' : 'Borrador_Legal_Julian.txt';
         document.body.appendChild(a);
         a.click();
         a.remove();
         window.URL.revokeObjectURL(url);
-    }} catch (err) {{
+    })
+    .catch(function(err) {
         alert("Error al descargar archivo: " + err.message);
-    }}
-}}
+    });
+}
 
-function abrirPlanes() {{ document.getElementById('modalPlanes').style.display = 'flex'; }}
-function cerrarPlanes() {{ document.getElementById('modalPlanes').style.display = 'none'; }}
+function abrirPlanes() { document.getElementById('modalPlanes').style.display = 'flex'; }
+function cerrarPlanes() { document.getElementById('modalPlanes').style.display = 'none'; }
 
 window.onload = verificarIdentidad;
 </script>
@@ -341,12 +332,17 @@ window.onload = verificarIdentidad;
 </body>
 </html>"""
 
+@app.api_route("/", methods=["GET", "HEAD"], response_class=HTMLResponse)
+def home():
+    html = HTML_PAGE.replace("SPREADSHEET_URL_PLACEHOLDER", SPREADSHEET_URL)
+    html = html.replace("PAYPAL_LINK_PLACEHOLDER", PAYPAL_GLOBAL_LINK)
+    return html
+
 # ---------------------------------------------------------
 # 7. ENDPOINTS OPERATIVOS
 # ---------------------------------------------------------
 @app.post("/descargar-archivo")
 def descargar_archivo(req: DescargaRequest):
-    """Genera descargas directas servidas desde la API con UTF-8 estricto"""
     texto_utf8 = "\ufeff" + req.texto
 
     if req.formato == "doc":
